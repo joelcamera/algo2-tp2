@@ -1,0 +1,509 @@
+\subsubsection{Operaciones básicas de Diccionario Natural($\alpha$)}
+
+
+\InterfazFuncion{CrearIt}{\In{d}{diccNat($\alpha$)} }{itDiccNat($\alpha$)}
+[true]
+{alias(esPermutacion?(SecuSuby($res$), $d$)) $\land$ vacia?(Anteriores($res$))}
+[$O(1)$]
+[Crea un Iterador de Diccionario.]
+[]
+
+~
+
+\InterfazFuncion{Copiar}{\In{d}{diccNat($\alpha$)}}{diccNat($\alpha$)}
+[true]
+{$res \igobs d$}
+[$\displaystyle\Theta\left(\sum_{c \in C}\left(log(c) + copy(\text{significado}(c,d))\right)\right)$, donde $C$ $=$ claves($d$)]
+[Genera una copia nueva del diccionario.]
+
+~
+
+\InterfazFuncion{$\bullet = \bullet$}{\In{d_1}{diccNat($\alpha$)}, \In{d_2}{diccNat($\alpha$)}}{bool}
+  {$res \igobs d_1 = d_2$}
+  [$\displaystyle O\left(\sum_{\substack{k_1 \in K_1\\k_2\in K_2}}equal(\langle k_1,s_1\rangle, \langle k_2, s_2 \rangle)\right)$, donde $K_i$ $=$ claves($d_i$) y $s_i$ $=$ significado($d_i, k_i$), $i \in \{1,2\}$.]
+  [compara $d_1$ y $d_2$ por igualdad, cuando $\alpha$ posee operación de igualdad.]
+  []%no hay aliasing
+  [{\parbox[t]{\textwidth-3cm}{%
+    \InterfazFuncion{$\bullet = \bullet$}{\In{s_1}{$\sigma$}, \In{s_2}{$\alpha$}}{bool}
+    {$res \igobs (s_1 = s_2)$}
+    [$\Theta(equal(s_1, s_2))$]
+    [función de igualdad de $\alpha$'s]
+  }}]
+
+
+
+
+
+
+%=================================================================
+\subsubsection{Operaciones Básicas Del Iterador}
+
+\InterfazFuncion{CrearIterador}{\In{d}{diccNat($\alpha$)} }{itDiccNat($\alpha$)}
+[true]
+{alias(esPermutacion?(SecuSuby($res$), $c$)) $\land$ vacia?(Anteriores($res$))}
+[$O(1)$]
+[Crea un Iterador de Diccionario Natural($\alpha$).]
+[El iterador se invalida si y solo si se elimina el elemento siguiente del iterador.]
+
+~
+
+\InterfazFuncion{HaySiguiente?}{\In{it}{itDiccNat($\alpha$)} }{bool}
+[true]
+{$res \igobs$ HaySiguiente?($it$)}
+[$O(1)$]
+[Devuelve true si y solo si en el iterador todavia hay elementos para avanzar.]
+[]
+
+
+~
+
+\InterfazFuncion{HayAnterior?}{\In{it}{itDiccNat($\alpha$)} }{bool}
+[true]
+{$res \igobs$ HayAnterior?($it$)}
+[$O(1)$]
+[Devuelve true si y solo si en el iterador si todavía quedan elementos para retroceder.]
+[]
+
+~
+
+\InterfazFuncion{SiguienteClave}{\In{it}{itDiccNat($\alpha$)} }{Nat}
+[HaySiguiente?($it$)]
+{$res \igobs$ SiguienteClave($it$)}
+[$O(1)$]
+[Devuelve la clave del elemento siguiente del iterador.]
+[$res$ no es modificable]
+
+~
+
+\InterfazFuncion{SiguienteSignificado}{\In{it}{itDiccNat($\alpha$)} }{$\alpha$}
+[HaySiguiente?($it$)]
+{$res \igobs$ SiguienteSignificado($it$)}
+[$\Theta(1)$]
+[Devuelve el significado del elemento siguiente del iterador.]
+[$res$ es modificable si y solo si $it$ es modificable.]
+
+~
+
+\InterfazFuncion{AnteriorClave}{\In{it}{itDiccNat($\alpha$)} }{Nat}
+[HayAnterior?($it$)]
+{$res \igobs$ AnteriorClave($it$)}
+[$O(1)$]
+[Devuelve la clave del elemento anterior del iterador.]
+[$res$ no es modificable]
+
+~
+
+\InterfazFuncion{AnteriorSignificado}{\In{it}{itDiccNat($\alpha$)} }{$\alpha$}
+[HayAnterior?($it$)]
+{$res \igobs$ AnteriorSignificado($it$)}
+[$\Theta(1)$]
+[Devuelve el significado del elemento anterior del iterador.]
+[$res$ es modificable si y solo si $it$ es modificable.]
+
+~
+
+\InterfazFuncion{Avanzar}{\Inout{it}{itDiccNat($\alpha$)} }{}
+[$it \igobs it_o \land$ HaySiguiente?($it$)]
+{$it \igobs$ Avanzar($it_o$)}
+[Caso prom: $\Theta(log(n))$ | Peor Caso $O(n)$]
+[Avanza a la posición siguiente del iterador.]
+[]
+
+~
+
+\InterfazFuncion{Retroceder}{\Inout{it}{itDiccNat($\alpha$)} }{}
+[$it \igobs it_o \land$ HayAnterior?($it$)]
+{$it \igobs$ Retroceder($it_o$)}
+[Caso prom: $\Theta(log(n))$ | Peor Caso $O(n)$]
+[Retrocede a la posición anterior del iterador.]
+[]
+
+~
+
+
+%=======================================================
+\subsubsection{Representación del Iterador}
+
+\begin{Estructura}{diccNat($\alpha$)}[iter]
+	\begin{Tupla}[iter]
+		\tupItem{arboliter}{puntero(diccNat($\alpha$))}%
+		\tupItem{\\ paiter}{puntero(Nodo)}%
+		\tupItem{\\ pbiter}{puntero(Nodo)}%
+	\end{Tupla}
+
+\end{Estructura}
+
+\Rep[estr][e]{
+	\\
+	Rep(*(it.arboliter)) $\yluego$	(it.paiter $==$ NULL $\land$ it.pbiter $==$ NULL) $\oluego$ (nodoMasIzq(*(it.arboliter).raiz $==$ it.paiter $\land$ it.pbiter $==$ NULL) $\oluego$ ($\exists i,j$: Nat) $i \neq j \Rightarrow$ (BuscaNodo(*it.arboliter, i) == it.paiter $\land$ \\ $\land$ (BuscaNodo(*it.arboliter, i) == it.paiter) 
+}\mbox{}
+
+\tadOperacion{BuscaNodo}{diccNat($\alpha$), Nat }{Nodo}{}
+\tadOperacion{BNAux}{Nodo, Nat }{Nodo}{}
+
+\tadAxioma{BuscaNodo(d,i)}{
+	\IF EsVacio?(d) THEN NULL
+	ELSE
+		BNAux(d.raiz,i)
+	FI
+}
+
+\tadAxioma{BNAux(n,i)}{
+	\IF NULL?(n) THEN NULL
+	ELSE{
+			\IF n$\rightarrow$clave $==$ i THEN n
+			ELSE{
+				\IF n$\rightarrow$clave > i THEN BNAUX(n$\rightarrow$hizq, i)
+				ELSE BNAUX(n$\rightarrow$hder, i)
+				FI
+			}
+			FI
+		}
+	FI
+}
+
+\Abs[iter]{itDiccNat($\alpha$)}[e]{it}{
+Siguientes(it) $=$ Sig(Inorder(*(e.arboliter).raiz), e.paiter) $\land$ Anteriores(it) $=$ Ant(Inorder(*(e.arboliter).raiz), e.paiter)
+}
+
+\tadOperacion{Inorder}{puntero(Nodo)}{secu(puntero(Nodo))}{}
+\tadOperacion{Sig}{Nodo/n, secu(puntero(Nodo))/s}{secu(puntero(Nodo))}{esta?(n,s)}
+\tadOperacion{Ant}{Nodo/n, secu(puntero(Nodo))/s}{secu(puntero(Nodo))}{esta?(n,s)}
+
+
+\tadAxioma{Inorder(n)}{
+	\IF n $==$ NULL THEN < >
+	ELSE Inorder((n$\rightarrow$hizq))$\&$(n$\bullet$(Inorder((n$\rightarrow$hder))))
+	FI
+}
+
+\tadAxioma{Sig(n,s)}{
+	\IF vacia?(s) THEN $<>$
+	ELSE{
+		\IF prim(s)$\rightarrow$clave $\geq$ n$\rightarrow$clave THEN prim(s)$\bullet$Sig(n,ult(s))
+		ELSE
+			Sig(n,ult(s))
+		FI
+	}
+	FI
+}
+
+\tadAxioma{Ant(n,s)}{
+	\IF vacia?(s) THEN $<>$
+	ELSE{
+		\IF prim(s)$\rightarrow$clave $<$ n$\rightarrow$clave THEN prim(s)$\bullet$Sig(n,ult(s))
+		ELSE
+			Sig(n,ult(s))
+		FI
+	}
+	FI
+}
+
+
+
+%==================================================================
+
+\subsection{Algoritmos}
+
+\subsubsection{Algoritmos de Diccionario Natural($\alpha$)}
+
+
+\begin{algorithm}[H]{\textbf{iCrearIt}(\In{e}{estr}) $\to$ $res$ : $iter$}
+	\begin{algorithmic}
+
+		\State $res \gets $CrearIterador$(\&e, e.masChico)$ \Comment $O(1)$
+
+
+		\medskip
+		\Statex \underline{Complejidad:} $O(1)$
+		\Statex \underline{Justificación:} La complejidad proviene de la funcion CrearIterador.
+
+    \end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iCopiar}(\In{e}{estr}) $\to$ $res$ : $estr$}
+	\begin{algorithmic}
+
+		\State $(res$$\rightarrow$$raiz) \gets NULL$ \Comment $O(1)$
+		\State $(res$$\rightarrow$$masChico) \gets NULL$ \Comment $O(1)$
+		\State $(res$$\rightarrow$$cantclaves) \gets 0$ \Comment $O(1)$
+
+		\If{$e.cantclaves > 0$} \Comment $O(1)$
+			\State AgregarNodos$(res, e.raiz)$ \Comment $O()$
+		\EndIf
+
+
+		\medskip
+		\Statex \underline{Complejidad:} $\displaystyle\Theta\left(\sum_{c \in C}\left(log(c) + copy(\text{significado}(c,d))\right)\right)$, donde $C$ $=$ claves($d$)
+		\Statex \underline{Justificación:} 
+
+    \end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{$\bullet = \bullet$}(\In{d_1}{estr}, \In{d_2}{estr}) $\to$ $res$ : $bool$}
+	\begin{algorithmic}
+
+		\State $itDiccNat(\alpha): it_1 \gets CrearIt(d_1)$ \Comment $O(1)$
+		\State $itDiccNat(\alpha): it_2 \gets CrearIt(d_2)$ \Comment $O(1)$
+
+		\While{(HaySiguiente$(it_1) \land $HaySiguiente$(it_2) \land $SiguienteClave$(it_1) == $SiguienteClave$(it_2) \land $SiguienteSignificado$(it_1) == $SiguienteSignificado$(it_2)$)} \Comment $O(1)$
+			\State Avanzar$(it_1)$ \Comment $O(1)$
+			\State Avanzar$(it_2)$ \Comment $O(1)$
+		\EndWhile \Comment $\displaystyle O\left(\sum_{\substack{k_1 \in K_1\\k_2\in K_2}}equal(\langle k_1,s_1\rangle, \langle k_2, s_2 \rangle)\right)$
+
+		\State $res \gets \neg ($HaySiguiente$(it_1) \lor $HaySiguiente$(it_2))$ \Comment $O(1)$
+
+		\medskip
+		\Statex \underline{Complejidad:} $\displaystyle O\left(\sum_{\substack{k_1 \in K_1\\k_2\in K_2}}equal(\langle k_1,s_1\rangle, \langle k_2, s_2 \rangle)\right)$, donde $K_i$ $=$ claves($d_i$) y $s_i$ $=$ significado($d_i, k_i$), $i \in \{1,2\}$
+		\Statex \underline{Justificación:} Se itera sobre los dos diccionarios al mismo tiempo y va comparando las claves y los significados.
+
+    \end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{AgregarNodos}(\In{b}{puntero(Nodo)}, \Inout{res}{estr})}
+	\begin{algorithmic}
+
+		\State Definir$((b$$\rightarrow$$clave), (b$$\rightarrow$$sign), res)$ \Comment $\Theta(log(n) + copy(s))$
+
+		\If{TieneHijoDerecho$(b)$} \Comment $O(1)$
+			\State AgregarNodos$((b$$\rightarrow$$hder))$ \Comment $T(\frac{n}{2})$
+		\EndIf
+
+		\If{TieneHijoIzq$(b)$} \Comment $O(1)$
+			\State AgregarNodos$((b$$\rightarrow$$hizq))$ \Comment $T(\frac{n}{2})$
+		\EndIf 
+
+
+		\medskip
+		\Statex \underline{Complejidad:} $\Theta(log(n) + copy(s))$ \\
+		$T(n) = 2T(\frac{n}{2}) + \Theta(log(n) + copy(s))$. Por Teorema Maestro: $f(n) \in \Omega(n^{log_2(2) + \epsilon}) = \Omega(n^{1 + \epsilon})$ para $\epsilon > 0$ y como $2f(\frac{n}{2}) \leq cf(n) \Leftrightarrow 2(log(\frac{n}{2}) + copy(s)) \leq c(log(n) + copy(s))$. Si tomo $c > 2$ cumple. Por lo tanto $T(n) \in \Theta(f(n))$.
+		\Statex \underline{Justificación:} La complejidad proviene de la funcion CrearIterador.
+
+    \end{algorithmic}
+\end{algorithm}
+
+
+%============================================================
+\subsubsection{Algoritmos de itDiccNat($\alpha$)}
+
+\begin{algorithm}[H]{\textbf{iCrearIterador}(\In{arboliter}{puntero(estr)}, \In{paiter}{puntero(Nodo)}) $\to$ $res$ : $iter$}
+	\begin{algorithmic}
+
+		\State $res.arboliter \gets arboliter$ \Comment $O(1)$
+		\State $res.paiter \gets paiter$ \Comment $O(1)$
+		\State $res.pbiter \gets NULL$ \Comment $O(1)$
+
+		\medskip
+		\Statex \underline{Complejidad:} $O(1)$
+
+    \end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{HaySiguiente?}(\In{it}{iter) $\to$ $res$ : $bool$}}
+	\begin{algorithmic}
+
+		\State $it.paiter \neq NULL$ \Comment $O(1)$
+
+		\medskip
+		\Statex \underline{Complejidad:} $O(1)$
+
+    \end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{HayAnterior?}(\In{it}{iter) $\to$ $res$ : $bool$}}
+	\begin{algorithmic}
+
+		\State $pbiter \neq NULL$ \Comment $O(1)$
+
+		\medskip
+		\Statex \underline{Complejidad:} $O(1)$
+
+    \end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{SiguienteClave}(\In{it}{iter) $\to$ $res$ : $Nat$}}
+	\begin{algorithmic}
+
+		\State $res \gets (it.paiter$$\rightarrow$$clave) $ \Comment $O(1)$
+
+		\medskip
+		\Statex \underline{Complejidad:} $O(1)$
+
+    \end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{SiguienteSignificado}(\In{it}{iter) $\to$ $res$ : $\alpha$}}
+	\begin{algorithmic}
+
+		\State $res \gets (it.paiter$$\rightarrow$$sign) $ \Comment $O(1)$
+
+		\medskip
+		\Statex \underline{Complejidad:} $\Theta(1)$
+
+    \end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{AnteriorClave}(\In{it}{iter) $\to$ $res$ : $Nat$}}
+	\begin{algorithmic}
+
+		\State $res \gets (it.pbiter$$\rightarrow$$clave) $ \Comment $O(1)$
+
+		\medskip
+		\Statex \underline{Complejidad:} $O(1)$
+
+    \end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{AnteriorSignificado}(\In{it}{iter) $\to$ $res$ : $\alpha$}}
+	\begin{algorithmic}
+
+		\State $res \gets (it.pbiter$$\rightarrow$$sign) $ \Comment $O(1)$
+
+		\medskip
+		\Statex \underline{Complejidad:} $\Theta(1)$
+
+    \end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{Avanzar}(\Inout{it}{iter)}}
+	\begin{algorithmic}
+		\State $\backslash\backslash$ se mueve en inorder sin usar pila.
+		\\
+
+		\If {$it.paiter == NULL$} \Comment $O(1)$
+			\State $\backslash\backslash$ termino de iterar y vuelvo a iterar
+
+			\State $it.paiter \gets (it.arboliter$$\rightarrow$$masChico)$ \Comment $O(1)$
+			\State $it.pbiter \gets NULL$ \Comment $O(1)$
+			\\
+
+		\ElsIf {$it.arboliter$$\rightarrow$TieneHijoDerecho$(it.paiter)$} \Comment $O(1)$
+			\State $\backslash\backslash$ si el nodo actual tiene un hijo derecho, me muevo a el y luego a la izq hasta el ultimo izq.
+			
+			\State $\backslash\backslash$actualizo el anterior
+			\State $it.pbiter \gets it.paiter$ \Comment $O(1)$
+			\State $it.paiter \gets (it.arboliter$$\rightarrow$BuscaNodoMasIzq$((it.paiter$$\rightarrow$$hder)))$ \Comment $\Theta(n)$
+			\\
+
+		\ElsIf {$!it.arboliter$$\rightarrow$TieneHijoDerecho$(it.paiter)$} \Comment $O(1)$
+			\State $\backslash\backslash$ no tiene hijo derecho entonces subo hasta encontrar que es hijo izq de algun nodo.
+
+			\State $it.pbiter \gets it.paiter$ \Comment $O(1)$
+			\State $it.paiter \gets $BuscoNodoSiguiente$(it.paiter)$ \Comment $\Theta(log(n))$
+			\\
+
+			\If {$it.paiter == NULL$} \Comment $O(1)$
+				\State $\backslash\backslash$ no tiene nodo siguiente, osea era el ultimo. Vuelvo a iterar.
+				\State $it.paiter \gets (it.arboliter$$\rightarrow$$masChico)$ \Comment $O(1)$
+				\State $it.pbiter \gets NULL$ \Comment $O(1)$
+			\EndIf
+
+
+		\EndIf
+
+		\medskip
+		\Statex \underline{Complejidad:} Caso prom: $\Theta(log(n))$ | Peor Caso $O(n)$
+		\Statex \underline{Justificación:} Si pa no tiene hijo derecho entonces sube al padre. Si pa tiene hijo derecho, busca el nodo mas a la izquierda del subarbol que tiene como raiz al hijo derecho. Si es hijo derecho y no posee hijos sube por el arbol hasta que sea un hijo derecho. Si sube buscando que el nodo sea un hijo derecho y llega a la raíz del arbol (o sea vengo del último nodo) vuelve a asignarse el primer nodo.
+
+    \end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{Retroceder}(\Inout{it}{iter)}}
+	\begin{algorithmic}
+		\State $\backslash\backslash$ si es igual a NULL comienza a iterar el iterador. NO esta hecho circular
+
+		\If ($it.pbiter \neq NULL$) \Comment $O(1)$
+
+			\State $it.paiter \gets it.pbiter$ \Comment $O(1)$
+
+			\If {$it.arboliter$$\rightarrow$TieneHijoIzq$(it.pbiter)$} \Comment $O(1)$
+				\State $it.pbiter \gets it.arboliter$$\rightarrow$BuscoNodoMasDerecha$(it.pbiter$$\rightarrow$$hizq)$ \Comment $\Theta(log(n))$
+
+			\Else
+				\State $it.pbiter \gets$ BuscoNodoAnterior$(it.pbiter)$ $\Theta(log(n))$
+
+			\EndIf
+		
+		\EndIf
+
+		\medskip
+		\Statex \underline{Complejidad:} Caso prom: $\Theta(log(n))$ | Peor Caso $O(n)$
+		\Statex \underline{Justificación:} Se le asigna a pa, pb. Si pb tiene hijo izquierdo se le asigna el nodo mas a la derecha de ese subarbol, sino se llama a la función BuscoNodoAnterior que devuelve el nodo anterior a pb.
+
+    \end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{BuscoNodoSiguiente}(\In{pa}{puntero(Nodo)}) $\to$ $res$ : $puntero(Nodo)$}
+
+	\begin{algorithmic}
+		\If {EsHijoIzquierdo$(pa)$} \Comment $O(1)$
+
+			\State $pa \gets (pa$$\rightarrow$$padre)$ \Comment $O(1)$
+
+		\Else
+				\State $puntero(Nodo): nodopadre \gets pa$$\rightarrow$$padre$ \Comment $O(1)$
+
+				\While {$nodopadre \neq NULL \land (nodopadre$$\rightarrow$$hder)$$\rightarrow$$clave == (pa$$\rightarrow$$clave) $} \Comment $O(1)$
+					\State $nodopadre \gets (nodopadre$$\rightarrow$$padre)$ \Comment $O(1)$
+					\State $pa \gets (pa$$\rightarrow$$padre)$ \Comment $O(1)$
+
+				\EndWhile \Comment $\Theta(log(n))$
+
+				\State $pa \gets nodopadre$ \Comment $O(1)$
+
+		\EndIf
+		
+		\State $res \gets pa$ \Comment $O(1)$
+
+		\medskip
+		\Statex \underline{Complejidad:} Caso prom: $\Theta(log(n))$ | Peor Caso $O(n)$
+		\Statex \underline{Justificación:} Si el siguiente es un hijo izquierdo devuelve el siguiente, sino busca yendo hacia arriba del arbol hasta que el nodo es hijo izquierdo. Si cada clave Nat se inserta con distrubución uniforme y no hay claves repetidas en este diccionario, eso genera que el arbol tienda a estar completo, por lo tanto la altura del arbol tiende a ser $log(n)$. Como tiene que buscar hacia arriba el nodo que es hijo izquierdo y la altura es en promedio $log(n)$, llegar a ese nodo, en promedio, es $log(n)$. Si las claves no fueron insertadas con distribución uniforme se puede obtener un peor caso de $O(n)$.
+
+    \end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{BuscoNodoAnterior}(\In{pb}{puntero(Nodo)}) $\to$ $res$ : $puntero(Nodo)$}
+
+	\begin{algorithmic}
+		\If {!EsHijoIzquierdo$(pb)$} \Comment $O(1)$
+			\State $\backslash\backslash$ es hijo derecho
+
+			\State $pb \gets (pb$$\rightarrow$$padre)$ \Comment $O(1)$
+
+		\Else
+				\State $puntero(Nodo): nodopadre \gets pb$$\rightarrow$$padre$ \Comment $O(1)$
+
+				\While {$nodopadre \neq NULL \land (nodopadre$$\rightarrow$$hizq)$$\rightarrow$$clave == (pb$$\rightarrow$$clave) $} \Comment $O(1)$
+					\State $nodopadre \gets (nodopadre$$\rightarrow$$padre)$ \Comment $O(1)$
+					\State $pb \gets (pb$$\rightarrow$$padre)$ \Comment $O(1)$
+
+				\EndWhile \Comment $\Theta(log(n))$
+
+				\State $pb \gets nodopadre$ \Comment $O(1)$
+
+		\EndIf
+		
+		\State $res \gets pb$ \Comment $O(1)$
+
+		\medskip
+		\Statex \underline{Complejidad:} Caso prom: $\Theta(log(n))$ | Peor Caso $O(n)$
+		\Statex \underline{Justificación:} Si el siguiente es un hijo derecho devuelve el siguiente, sino busca yendo hacia arriba del arbol hasta que el nodo es hijo derecho. Si cada clave Nat se inserta con distrubución uniforme y no hay claves repetidas en este diccionario, esto genera que el arbol tienda a estar completo, por lo tanto la altura del arbol tiende a ser $log(n)$. Como tiene que buscar hacia arriba el nodo que es hijo derecho y la altura es en promedio $log(n)$, llegar a ese nodo, en promedio, es $log(n)$. Si las claves no fueron insertadas con distribución uniforme se puede obtener un peor caso de $O(n)$.
+
+    \end{algorithmic}
+\end{algorithm}
+
+
+

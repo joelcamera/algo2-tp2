@@ -1,0 +1,812 @@
+\section{M\'odulo Tabla}
+
+\subsection{Interfaz}
+
+\textbf{se explica con}: \tadNombre{Tabla}.
+
+\textbf{géneros}: tabla
+
+
+~
+
+
+\subsubsection{Operaciones b\'asicas de Tabla}
+
+\begin{Interfaz}
+
+\InterfazFuncion{nuevaTabla}{\In{nombre}{string}, \In{claves}{conj(campo)}, \In{columnas}{registro} }{tabla}
+[$claves \neq \emptyset \land claves \subseteq$ campos($columnas$)]
+{$res \igobs$ nuevaTabla($nombre$, $claves$, $columnas$)}
+[$\Theta(1)$]
+[Crea una nueva tabla tomando como parametros un $nombre$, sus $claves$ y sus $columnas$.]
+[Los parametros nombre, claves y columnas toman por copia.]
+
+~
+
+\InterfazFuncion{agregarRegistro}{\Inout{t}{tabla,\In{r}{registro}}}{itConj(registro)}
+[$t \igobs t_o \land$ campos($r$) $\igobs$ campos(columnas($t$)) $\land$ puedoInsertar?($r$, $t$)]
+{$t \igobs agregarRegistro(r, t_0) \land$ haySiguiente(res) $\yluego$ Siguiente(res) $=$ r \\ $\land$ alias(esPermutacion?(SecuSuby(res), t.registros)}
+[$\Theta(L) + O(L + log (\#t.registros))$]
+[Agrega el registro $r$ a la tabla $t$.]
+[El registro r se agrega por copia. El iterador es no modificable y se invalida al insertar o borrar registros de la tabla]
+
+~
+
+\InterfazFuncion{borrarRegistro}{\Inout{t}{tabla},\In{crit}{registro}}{}
+[$t \igobs t_o \land$ \#campos($crit$)$ = 1 \yluego$ dameUno(campos($crit$)) $\in$ claves($t$)]
+{$t \igobs$ borrarRegistro($crit$, $t_o$)}
+[$O(L + log \#registros + L * \#t.registros)$\\ 
+Si el criterio no es indice, entonces $O(L * \#t.registros)$ si es string o $\Theta(L + \#t.registros)$ si es Nat. \\
+Si el criterio es indice Nat $O(L + log(\#t.registros))$ \\
+Si el criterio es indice String $O(L + log(\#t.registros))$ 
+]
+[Borra los registros de la tabla $t$ que coincidan con el registro $crit$.]
+[]
+
+~
+
+\InterfazFuncion{indexar}{\Inout{t}{tabla} , \In{c}{campo}}{}
+[$t \igobs t_o \land$ puedeIndexar($c$, $t$)]
+{$t \igobs$ indexar($c$, $t_0$)}
+[Si el indice es Nat $O(\#registros * log(\#registros))$
+Si el indice es String $O(\#registros * L)$]
+[Agrega un indice a la tabla $t$.]
+[]
+
+~
+
+\InterfazFuncion{nombre}{\In{t}{tabla}}{string}
+[true]
+{$res \igobs$ nombre($t$)}
+[$\Theta(1)$]
+[Devuelve el nombre de la tabla.]
+[El string no es modificable.]
+
+~
+
+\InterfazFuncion{claves}{\In{t}{tabla} }{conj(campo)}
+[true]
+{$res \igobs$ claves($t$)}
+[$\Theta(1)$]
+[Devuelve el conjunto de claves de la tabla.]
+[El conjunto se devuelve por copia]
+
+~
+
+\InterfazFuncion{indices}{\In{t}{tabla} }{conj(campo)}
+[true]
+{$res \igobs$ indices($t$)}
+[$\Theta(1)$]
+[Devuelve el conjunto de indices de la tabla.]
+[El conjunto se devuelve por copia]
+
+~
+
+\InterfazFuncion{campos}{\In{t}{tabla}}{conj(campo)}
+[true]
+{$res \igobs$ columnas($t$)}
+[$\Theta(1)$]
+[Devuelve el conjunto de columnas de la tabla.]
+[El conjunto se devuelve por copia]
+
+~
+
+\InterfazFuncion{tipoCampo}{\In{t}{tabla},\In{c}{campo}}{tipo}
+[true]
+{$res \igobs$ tipo(obtener(c,t.columnas)))}
+[$\Theta(1)$]
+[Devuelve el tipo del campo pedido]
+[]
+
+~
+
+\InterfazFuncion{registros}{\In{t}{tabla} }{conj(registro)}
+[true]
+{$res \igobs$ registros($t$))}
+[$\Theta(1)$]
+[Devuelve el conjunto de registros de la tabla]
+[El conjunto se devuelve por referencia no modificable]
+
+~
+
+\InterfazFuncion{cantidadDeAccesos}{\In{t}{tabla}}{nat}
+[true]
+{$res \igobs$ cantidadDeAccesos($t$)}
+[$\Theta(1)$]
+[Devuelve un natural con la cantidad de modificaciones de la tabla.]
+[]
+
+% ~
+
+% % \InterfazFuncion{puedoInsertar?}{\In{r}{registro}, \In{t}{tabla} }{bool}
+% % [true]
+% % {$res \igobs$ puedoInsertar?($r$, $t$)}
+% % [$\Theta(1)$]
+% % [Devuelve true si se puede insertar el registro $r$ en la tabla.]
+% % []
+
+~
+
+\InterfazFuncion{minimo}{\In{c}{campo}, \In{t}{tabla} }{dato}
+[$\neg \emptyset$?(registros($t$)) $\land$ $c \in$ indices($t$)]
+{$res \igobs$ minimo($c$, $t$)}
+[$\Theta(1)$]
+[Devuelve el dato mínimo de un campo de la tabla.]
+[]
+
+~
+
+\InterfazFuncion{maximo}{\In{c}{campo}, \In{t}{tabla} }{dato}
+[$\neg \emptyset$?(registros($t$)) $\land$ $c \in$ indices($t$)]
+{$res \igobs$ maximo($c$, $t$)}
+[$\Theta(1)$]
+[Devuelve el dato máximo de un campo de la tabla.]
+[]
+
+~
+
+\InterfazFuncion{puedeIndexar}{\In{c}{campo}, \In{t}{tabla} }{bool}
+[true]
+{$res \igobs$ puedeIndexar($c$, $t$)}
+[$\Theta(1)$]
+[Devuelve true si puede usar a $c$ como indice.]
+[]
+
+~
+
+\InterfazFuncion{combinarRegistros}{\In{c}{campo},\In{t}{tabla},\In{cr}{conj(registro)}}{conj(registro)}
+[$enTodos(c,registros(t)) \land enTodos(c,cr)$]
+{$res \igobs$ combinarRegistros(c,registros(t),cr)}
+[$\Theta$($\#$cr) * (O(log $\#$registros(t)) + $\Theta$(L)) con indice nat. \\
+$\Theta(\#cr$ * $L)$	con indice string. \\
+$\Theta(\#registros(t)$ * $\#cr$ * $L)$ sin indices.]
+[Devuelve un conjunto de registros resultado de tomar una tabla y un conjuntos de registros y dejar solo los que tienen el mismo valor en el campo c]
+[La tabla t y el conjunto cr se pasan por referencia. Se devuelve un conjunto de registros por copia.]
+
+~
+
+\InterfazFuncion{coincidencias}{\In{crit}{registro},\In{t}{tabla}}{conj(registro)}
+[$campos(crit) \subseteq campos(t)$]
+{$res \igobs$ coincidencias(r,registros(t))}
+[$O(log ($\#$registros(t)) + L * \#($reg mismo indice$))$ con indice nat. \\
+$O(L * \#($reg mismo indice$))$	con indice string. \\
+$O(\#registros(t) * L)$	sin indices.]
+[Devuelve un conjunto de registros resultado de tomar una tabla y un registro de criterio y dejar solo los que coinciden en campo y valor.]
+[La tabla t y el registro r se pasan por referencia. Se devuelve un conjunto de registros por copia.]
+
+\end{Interfaz}
+
+~
+
+\pagebreak
+\subsubsection{Representaci\'on de Tabla}
+
+\begin{Estructura}{Tabla}[estr]
+
+	\begin{Tupla}[estr]
+		\tupItem{nombre}{String}%
+		\tupItem{\\ indices}{tupla<iNat:campo,iStr:campo>}
+		\tupItem{\\ claves}{conj(campo)}
+		\tupItem{\\ columnas}{registro}
+		\tupItem{\\ registros}{conj(registro)}
+		\tupItem{\\ indiceNat}{diccNat(Nat, conj(itConj(registro)))}
+		\tupItem{\\ indiceStr}{diccString(String, conj(itConj(registro))}
+		\tupItem{\\ \#accesos}{Nat}
+	\end{Tupla}
+
+\end{Estructura}
+
+Todos los tipo conj se refieren al modulo conjunto lineal de la catedra. \\
+Registro se refiere al modulo adjunto en la documentacion. \\
+Campo es string.
+DiccNat se refiere a un diccionario de con busqueda, borrado e inserci\'on O(log n) adjunto en la documentaci\'on.
+DiccString se refiere a un diccionario de con busqueda, borrado e inserci\'on O(L(largo de la clave mas larga)) adjunto en la documentaci\'on.
+
+Los significados de los indices contienen un conjunto de interadores de registros que apuntan a estr.registros. Se tiene un conjunto para dar soporte a indices con valores repetidos (que no son clave).
+
+
+\subsubsection{Invariante de Representaci\'on}
+
+\begin{enumerate}
+	\item e.claves esta incluido en campos(e.columnas)
+	\item Si no hay indice nat en la tabla e.indices.iNat == <> $\land$ e.indiceNat == Vacio() 
+	\item Si no hay indice str en la tabla e.indices.iStr == <> $\land$ e.indiceStr == Vacio() 
+	\item Si hay indice nat (e.indice.iNat pertenece a campos(e.columnas)) $\land$ para toda claves(e.indiceNat) existe valorNat perteneciente a dameColumna(t,e.indices.iNat) y el conjunto de iteradores de los significados apunta a los registros cuyo campo indice.iNat es igual a la clave del indiceNat.
+	\item Si hay indice string (e.indice.iStr pertenece a campos(e.columnas)) $\land$ para toda claves(e.indiceStr) existe valorStr perteneciente a dameColumna(t,e.indices.iStr) y el conjunto de iteradores de los significados apunta a los registros cuyo campo indice.iStr es igual a la clave del indiceStr.
+	\item para todo registro del conjunto e.registros , las columnas son las mismas que e.columnas \\
+			y los tipo de datos tambien.
+	\item la columnas claves no tiene repetidos
+	\item e.\#accesos $\geq$ $|$e.registros$|$
+\end{enumerate}
+
+~
+
+\Rep[estr][e]{\\ e.claves $\subseteq$ campos(e.columnas) $\yluego$ \Comment (1)\\
+	(vacio?(e.indices.iNat) $\Rightarrow$ vacio?(e.indiceNat)) $\yluego$ \Comment (2)\\
+	(vacio?(e.indices.iStr) $\Rightarrow$ vacio?(e.indiceStr)) $\yluego$ \Comment (3)\\
+	($\neg$ vacio?(e.indices.iNat) $\Rightarrow_L$ \\ 
+	(e.indices.iNat $\in$ campos(e.columnas) $\land$  clavesIndiceNatValidas(e) $\land$ itRegValidosNat(e) $\yluego$ \Comment (4)\\
+	($\neg$ vacio?(e.indices.iStr) $\Rightarrow_L$ \\
+	(e.indices.iStr $\in$ campos(e.columnas) $\land$ clavesIndiceStrValidas(e)  $\land$ itRegValidosStr(e) $\yluego$ \Comment (5)\\
+	(camposValidos(e) $\land$ (tiposDeDatoValidos(e))) $\yluego$ \Comment (6)\\
+	(($\forall$ c:campo)(c $\in$ e.claves) $\Rightarrow$ (sinRepetidos(dameColumna(c,e)))) $\yluego$ \Comment (7)\\
+	(e.\#accesos $\geq$ $\#(e.registros)$) \Comment (8)
+}\mbox{}
+\\
+
+clavesIndiceNatValidas(e) $\equiv$ ($\forall$ c:Nat)((c $\in$ claves(e.indiceNat)) $\Rightarrow$ (datoNat(c) $\in$ dameColumna(e.indice.iNat,e)))
+clavesIndiceStrValidas(e) $\equiv$ ($\forall$ c:String)((c $\in$ claves(e.indiceStr)) $\Rightarrow$ (datoStr(c) $\in$ dameColumna(e.indice.iStr,e)))
+camposValidos(e) $\equiv$ ($\forall$ r:registro)((r $\in$ e.registros) $\Rightarrow$ (campos(r) $\igobs$ campos(e.columnas))) \\
+tiposDeDatoValidos(e) $\equiv$ ($\forall$ r:registro)((r $\in$ e.registros) $\Rightarrow$ (mismosTipos(r,e.columnas))) \\
+mismoTipos(r1,r2) $\equiv$ ($\forall$ c:campo)((c $\in$ campos(r1)) $\Rightarrow$ (tipo(obtener(c,r1)) $==$ tipo(obtener(c,r2)))) \\
+camposClave(r1,r2) $\equiv$ ($\forall$ c:campo)((c $\in$ campos(r1)) $\Rightarrow$ (tipo(obtener(c,r1)) $==$ tipo(obtener(c,r2)))) \\
+itRegValidosNat(e) $\equiv$ ($\forall$ c:Nat)((c $\in$ claves(e.indiceNat)) $\Rightarrow$ \\ 
+registrosValidos(obtener(c,e.indiceNat),e.registros,e.indices.iNat,datoNat(c))) \\
+itRegValidosStr(e) $\equiv$ ($\forall$ c:String)((c $\in$ claves(e.indiceString)) $\Rightarrow$ \\
+registrosValidos(obtener(c,e.indiceStr),e.registros,e.indices.iStr,datoStr(c))) \\
+registrosValidos(citr,cr,c,d) $\equiv$ ($\forall$ it:itReg)((it $\in$ citr) $\Rightarrow$ (haySiguiente(it) $\yluego$ siguiente(it) $\in$ cr $\yluego$ obtener(c,siguiente(it))) = d) \\
+
+
+\subsubsection{Funci\'on de Abstracci\'on}
+
+
+\Abs[estr]{tabla}[e]{t}{e.nombre == nombre(t) \yluego \\
+						e.claves == claves(t) \yluego \\
+						campos(e.columnas) == campos(t) \yluego \\
+						tipoCamposValidos(e,t) \yluego \\
+						e.registros = registros(t)  \yluego \\
+						e.\#accesos = cantidadAccesos(t);
+
+}					
+
+\tadAxioma{tipoCamposValidos(e,t)}{
+	($\forall$ c:Campo $\land$ c $\in$ campos(e.columnas) $\Rightarrow$ tipoCampo(c,t) == tipoCampo(e,c))
+}
+
+\subsection{Algoritmos}
+
+
+\lstset{style=alg}
+
+
+\begin{algorithm}[H]{\textbf{iNuevaTabla}(\In{nombre}{String},\In{claves}{conj(Campos)},\In{columnas}{registro}) $\to$ $res$ : tabla}
+	\begin{algorithmic}[1]
+		\State $res.nombre \gets copiar(nombre)$ \Comment $\Theta(|nombre|)$
+		\State $res.columnas \gets copiar(columnas)$ \Comment costo de copiar el registro $\Theta(\sum_{r \in R}{(copiar(campo)+copiar(dato))})$
+		\State $res.claves \gets copiar(claves)$ \Comment costo de copiar el conjunto $\Theta(\sum_{c \in C}{(copiar(campo))})$
+		\State $res.indices \gets \langle<>,<>\rangle$ crea una tupla \Comment $\Theta(1)$
+		\State $res.registros \gets Vacio()$ \Comment $\Theta(1)$
+		\State $res.\#accesos \gets 0$ \Comment $\Theta(1)$
+		\State $res.indiceNat \gets crearDiccionario()$ \Comment $\Theta(1)$
+		\State $res.indiceStr \gets crearDiccionario()$ \Comment $\Theta(1)$
+		\medskip
+		\Statex \underline{Complejidad:} $\Theta(1)$
+		\Statex \underline{Justificación:} Como el nombre de la tabla es acotado nombre se copia en O(1); la cantidad de campos es actoda y sus nombres tambien entonces la copia del registro con los datos vacios es O(1); por lo mismo la copia de las claves tambien es O(1), y el resto son operaciones elementales quedando entonces la complejidad O(1)  
+    \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iAgregarRegistro}(\Inout{t}{tabla},\In{r}{registro}) $\to$ $res$ : itConj(registro)}
+	\begin{algorithmic}[1]
+		\State $itConj(registro): itreg \gets agregarRapido(t.registros,r)$ \Comment el elemento no esta por \textbf{Pre} $\Theta(copiar(r))$
+		\State $t.\#accesos \gets t.\#accesos + 1$ \Comment $\Theta(1)$
+		\State $agregarIndices(t,itreg)$	\Comment actualizacion de los indices $O(L + log(\#t.registros)$
+		\State $res \gets itreg$
+		\medskip
+		\Statex \underline{Complejidad:} $\Theta(L) + O(L + log (\#t.registros))$
+		\Statex \underline{Justificación:} Copiar a r es igual a L; la actualizacion de los indices, que sino esta indexado es $\Theta(1)$, si solo tiene un indice Nat es $O(log \#(t.registros))$, si solo tiene un indice String es $O(L)$, y si tiene ambas es $O(L + log(\#t.registros))$
+
+	\end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iBorrarRegistro}(\Inout{t}{tabla},\In{crit}{registro})}
+	\begin{algorithmic}[1]
+		\State $campo: cCriterio \gets siguiente(CrearIt(campos(crit)))$ \Comment $\Theta(1)$
+		\State $dato: dCriterio \gets obtener(crit,cCriterio))$	\Comment $\Theta(\#campos)$
+		\If{$cCriterio = t.indices.iNat$}	\Comment $\Theta(1)$
+			\State $borrarPorIndiceNat(t,crit)$ \Comment $O(log(\#t.registros))$
+		\Else
+			\If{$cCriterio = t.indices.iStr$}	\Comment String acotado $\Theta(1)$
+				\State $borrarPorIndiceStr(t,crit)$ \Comment $O(L)$
+			\Else
+				\State $borrarSinIndice(t,crit)$ \Comment $\Theta(\#t.registros * L)$
+			\EndIf
+		\EndIf
+		\State $borrarIndices(t,crit)$ \Comment $O(L + log(\#t.registros))$
+		\medskip
+		\Statex \underline{Complejidad:}
+		\begin{itemize}
+		\item Si el criterio no es indice, entonces $O(L * \#t.registros)$ si es string o $\Theta(\#t.registros)$ si es Nat. 
+		\item Si el criterio es indice Nat $O(log(\#t.registros))$
+		\item Si el criterio es indice String $O(L)$ 
+		\end{itemize}
+		\\
+		Ademas se suma el borrado de los indices que en peor caso es $O(L+log(\#t.registros))$
+		\Statex \underline{Justificación:} Segun la rama del algoritmo que se tome se aplican las complejidades de las funciones auxiliares invocadas donde esta debidamente justificada su complejidad. 
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iBorrarPorIndiceNat}(\Inout{t}{tabla},\In{crit}{registro})}
+	{\\ $\textbf{Pre} \equiv \{t \igobs t_0 \land \#campos(crit) = 1 \yluego dameUno(campos(crit)) \in claves(t)\}$}
+	\begin{algorithmic}[1]
+		\State $campo: cCriterio \gets siguiente(CrearIt(campos(crit)))$ \Comment $\Theta(1)$
+		\State $dato: dCriterio \gets obtener(crit,cCriterio))$	\Comment $\Theta(\#campos)$
+		\State $conj(itConj(registro)): regMismoIndice \gets obtener(t.indiceNat,valorNat(dCriterio)$ \Comment $O(log \#(t.registros))$
+		\State $itConj(itConj(registro)): itreg \gets CrearIt(regMismoIndice)$ \Comment $\Theta(1)$
+		%\While{$haySiguiente?(itreg)$} \Comment $\Theta(\#regMismoIndice)$
+		\State $eliminarSiguiente(siguiente(itreg))$	\Comment solo borro el siguiente porque es un campos clave $\Theta(1)$
+		%\State $avanzar(itreg)$	\Comment $\Theta(1)$
+		\State $t.\#accesos \gets t.\#accesos + 1$ \Comment $\Theta(1)$
+		%\EndWhile
+		\medskip
+		\Statex \underline{Complejidad:} $O(log \#t.registros)$
+		\Statex \underline{Justificación:} Es el tiempo de busqueda en el diccionario, el resto es O(1) 
+	\end{algorithmic}
+	{$\textbf{Post} \equiv \{t \igobs borrarRegistro(crit,t_0)\}$}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iBorrarPorIndiceString}(\Inout{t}{tabla},\In{crit}{registro})}
+	{\\ $\textbf{Pre} \equiv \{t \igobs t_0 \land \#campos(crit) = 1 \yluego dameUno(campos(crit)) \in claves(t)\}$}
+	\begin{algorithmic}[1]
+		\State $campo: cCriterio \gets siguiente(CrearIt(campos(crit)))$ \Comment $\Theta(1)$
+		\State $dato: dCriterio \gets obtener(crit,cCriterio))$	\Comment $\Theta(\#campos)$
+		\State $conj(itConj(registro)): regMismoIndice \gets obtener(t.indiceString,valorString(dCriterio)$ \Comment $O(L)$
+		\State $itConj(itConj(registro)): itreg \gets CrearIt(regMismoIndice)$ \Comment $\Theta(1)$
+		%\While{$haySiguiente?(itreg)$} \Comment $\Theta(\#regMismoIndice)$
+		\State $eliminarSiguiente(siguiente(itreg))$	\Comment solo borro el siguiente porque es un campos clave $\Theta(1)$
+		%	\State $avanzar(itreg)$	\Comment $\Theta(1)$
+		\State $t.\#accesos \gets t.\#accesos + 1$ \Comment $\Theta(1)$
+		%\EndWhile
+		\medskip
+		\Statex \underline{Complejidad:} $O(L)$
+		\Statex \underline{Justificación:} Es el tiempo de busqueda en el diccionario, el resto es O(1)
+	\end{algorithmic}
+	{$\textbf{Post} \equiv \{t \igobs borrarRegistro(crit,t_0)\}$}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iBorrarSinIndice}(\Inout{t}{tabla},\In{crit}{registro})}
+	{\\ $\textbf{Pre} \equiv \{t \igobs t_0 \land \#campos(crit) = 1 \yluego dameUno(campos(crit)) \in claves(t)\}$}
+	\begin{algorithmic}[1]
+		\State $campo: cCriterio \gets siguiente(CrearIt(campos(crit)))$ \Comment $\Theta(1)$
+		\State $dato: dCriterio \gets obtener(crit,cCriterio))$	\Comment $\Theta(\#campos)$
+		\State $itConj(registros):itreg \gets CreatIt(t.registros)$ \Comment $\Theta(1)$
+		\While{$haySiguiente?(itreg)$} \Comment $\Theta(\#(t.registros))$
+			\State $dato: dBorrar = obtener(siguiente(itreg),cCriterio)$
+			\If{$dBorrar = dCriterio$}	\Comment O(min(valosStr(dCriterio),valorStr(dBorrar)))
+				\State $eliminarSiguiente(itreg)$	\Comment $\Theta(1)$
+				\State $t.\#accesos \gets t.\#accesos + 1$ \Comment $\Theta(1)$
+			\EndIf
+			\State $avanzar(itreg)$	\Comment $\Theta(1)$
+		\EndWhile
+		\medskip
+		\Statex \underline{Complejidad:} $\Theta(\#t.registros * O(L))$ si el campo es string $\Theta(\#t.registro)$ si es nat
+		\Statex \underline{Justificación:} Compara el campo criterio con todos los regitros de la tabla, que en el caso de un campo Nat es O(1) y en caso de un string O(longitud de string) donde L es el string mas largo y el peor caso.
+	\end{algorithmic}
+	{$\textbf{Post} \equiv \{t \igobs borrarRegistro(crit,t_0)\}$}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iIndexar}(\Inout{t}{tabla},\In{c}{campo}) $\to$ res: bool}
+	\begin{algorithmic}[1]
+		\State $res \gets iPuedeIndexar?(t,c)$	\Comment $\Theta(1)$
+		\If{$res$}
+			\If{$tipoCampo(t,c)$}	\Comment $\Theta(1)$
+				\State $indexarNat(t,c)$	\Comment $O(\#registros * log(\#registros))$
+			\Else
+				\State $indexarStr(t,c)$	\Comment $O(\#registros * L)$
+			\EndIf
+		\EndIf
+		\medskip
+		\Statex \underline{Complejidad:} 
+		\begin{itemize}
+		\item Si el indice es Nat $O(\#registros * log(\#registros))$
+		\item Si el indice es String $O(\#registros * L)$
+		\end{itemize}
+		\Statex \underline{Justificación:} Segun la rama que se tome se pagan las complejidades de los auxiliares que estan descriptos como cota superior, peor caso.
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iIndexarNat}(\Inout{t}{tabla},\In{c}{campo}) $\to$ res: bool}
+	{\\ $\textbf{Pre} \equiv \{ t \igobs t_0 \land Nat?(obtener(c,t.columnas)) \land puedoIndexar?(c,t)\}$}
+	\begin{algorithmic}[1]
+		\State $itConj(registros):itreg \gets CreatIt(t.registros)$ \Comment $\Theta(1)$
+		\While{$haySiguiente?(itreg)$} \Comment $\Theta(\#t.registros)$
+			\State $agregarIndiceNat(t,itreg)$ \Comment $O(log(\#t.indiceNat))$
+			\State $avanzar(itreg)$	\Comment $\Theta(1)$
+		\EndWhile
+		\State $t.indices.iNat \gets c$	\Comment $\Theta(1)$
+		\medskip
+		\Statex \underline{Complejidad:} $O\left(\#t.registros * \displaystyle\sum_{n = 0}^{\ell}{log(n)}\right)$ donde $\ell = \#registros$
+		\Statex \underline{Justificación:} Itera sobre todos los registros de la tabla y por cada uno paga el log de la cantidad de indices agregados hasta el momento.
+	\end{algorithmic}
+	{$\textbf{Post} \equiv t_0 \igobs indexar(t)$}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iIndexarStr}(\Inout{t}{tabla},\In{c}{campo},\In{itreg}{itConj(registros)})}
+	{\\ $\textbf{Pre} \equiv \{t \igobs t_0 \land String?(obtener(c,t.columnas)) \land puedoIndexar?(c,t)\}$}
+	\begin{algorithmic}[1]
+		\State $itConj(registros):itreg \gets CreatIt(t.registros)$ \Comment $\Theta(1)$
+		\While{$haySiguiente?(itreg)$} \Comment $\Theta(\#t.registros)$
+			\State $agregarIndiceString(t,itreg)$ \Comment $O(L)$
+			\State $avanzar(itreg)$	\Comment $\Theta(1)$
+		\EndWhile
+		\State $indices.iString \gets copiar(c)$	\Comment string acotado entonces $\Theta(1)$
+		\medskip
+		\Statex \underline{Complejidad:} $O(\#t.registros * L)$
+		\Statex \underline{Justificación:} Itera sobre todos los registros de la tabla y por cada uno paga la longitud del string insertado mas largo. Se considera todas las iteraciones el string mas largo como cota superior. 
+	\end{algorithmic}
+	{$\textbf{Post} \equiv t_0 \igobs indexar(t)$}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iPuedeIndexar}(\In{t}{tabla},\In{c}{campo}) $\to$ res: bool}
+	\begin{algorithmic}[1]
+		\State $res \gets pertenece?(t.columnas,c)$	\Comment por campos acotados $\Theta(1)$
+		\If{$tipoCampo(t,c)$}
+			\State $res \gets res \land vacia?(indices.iNat))$ \Comment $\Theta(1)$
+		\Else
+			\State $res \gets res \land vacia?(indices.iString))$ \Comment $\Theta(1)$
+		\EndIf
+		\medskip
+		\Statex \underline{Complejidad:} $\Theta(1)$
+		\Statex \underline{Justificación:} Por campos acotados y operaciones elementales
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iNombre}(\In{t}{tabla}) $\to$ res: string}
+	\begin{algorithmic}[1]
+		\State $res \gets t.nombre$	\Comment $\Theta(1)$
+		\medskip
+		\Statex \underline{Complejidad:} $\Theta(1)$
+		\Statex \underline{Justificación:} Devuelve por referencia
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iClaves}(\In{t}{tabla}) $\to$ res: conj(campo)}
+	\begin{algorithmic}[1]
+		\State $res \gets t.claves$	\Comment $\Theta(1)$
+		\medskip
+		\Statex \underline{Complejidad:} $\Theta(1)$
+		\Statex \underline{Justificación:} Devuelve por referencia
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iIndices}(\In{t}{tabla}) $\to$ res: conj(campo)}
+	\begin{algorithmic}[1]
+		\State $res \gets \emptyset$ \Comment $\Theta(1)$
+		\If{$\neg Vacio?(t.indices.iNat$}	\Comment $\Theta(1)$
+			\State $agregarRapido(res,t.indices.iNat)$ \Comment $\Theta(1)$
+		\EndIf 
+		\If{$\neg Vacio?(t.indices.iStr$}	\Comment $\Theta(1)$
+			\State $agregarRapido(res,t.indices.iStr)$ \Comment $\Theta(1)$
+		\EndIf 
+		\medskip
+		\Statex \underline{Complejidad:} $\Theta(1)$
+		\Statex \underline{Justificación:} Genera un conjunto con los campos indices, que son acotados; entonces $\Theta(1)$ 
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iCampos}(\In{t}{tabla}) $\to$ res: conj(campo)}
+	\begin{algorithmic}[1]
+		\State $res \gets campos(t.columnas)$	\Comment $\Theta(1)$
+		\medskip
+		\Statex \underline{Complejidad:} $\Theta(1)$
+		\Statex \underline{Justificación:} Devuelve por referencia
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iTipoCampo}(\In{t}{tabla},\In{c}{campo}) $\to$ res: tipo}
+	\begin{algorithmic}[1]
+		\State $res \gets esNat?(obtener(t.columnas,c))$	\Comment $\Theta(1)$
+		\medskip
+		\Statex \underline{Complejidad:} $\Theta(1)$
+		\Statex \underline{Justificación:} Operacion elemental
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iRegistros}(\In{t}{tabla}) $\to$ res: conj(registro)}
+	\begin{algorithmic}[1]
+		\State $res \gets t.registros$	\Comment $\Theta(1)$
+		\medskip
+		\Statex \underline{Complejidad:} $\Theta(1)$
+		\Statex \underline{Justificación:} Devuelve por referencia
+	\end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iCantidadDeAccesos}(\In{t}{tabla}) $\to$ res: Nat}
+	\begin{algorithmic}[1]
+		\State $res \gets t.\#accesos$	\Comment $\Theta(1)$
+		\medskip
+		\Statex \underline{Complejidad:} $\Theta(1)$
+		\Statex \underline{Justificación:} Es una operacion elemental
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iMinimo}(\In{t}{tabla},\In{c}{campo}) $\to$ res:dato}
+	\begin{algorithmic}[1]
+		\If{$t.indices.iNat = c$} \Comment  por string acotado $\Theta(1)$
+			\State $res \gets datoNat(claveMinima(t.indices.iNat))$ \Comment $\Theta(1)$
+		\Else
+			\State $res \gets datoString(claveMinima(t.indices.iStr))$ \Comment $\Theta(1)$
+		\EndIf
+		\medskip
+		\Statex \underline{Complejidad:} $\Theta(1)$
+		\Statex \underline{Justificación:} Por que los diccionarios devuelven el dato en $\Theta(1)$ y este se devuelve por referencia.
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iMaximo}(\In{t}{tabla},\In{c}{campo}) $\to$ res:dato}
+	\begin{algorithmic}[1]
+		\If{$t.indices.iNat = c$} \Comment por string acotado $\Theta(1)$
+			\State $res \gets datoNat(claveMaxima(t.indices.iNat))$ \Comment $\Theta(1)$
+		\Else
+			\State $res \gets datoString(claveMaxima(t.indices.iStr))$ \Comment $\Theta(1)$
+		\EndIf
+		\medskip
+		\Statex \underline{Complejidad:} $\Theta(1)$
+		\Statex \underline{Justificación:}  Por que los diccionarios devuelven el dato en $\Theta(1)$ y este se devuelve por referencia.
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iAgregarIndices}(\Inout{t}{tabla},\In{itreg}{itConj(registro)})}
+	{\\ $\textbf{Pre} \equiv \{t \igobs t_0\}$}
+	\begin{algorithmic}[1]
+		\If{$\neg EsVacio?(t.indices.iNat)$} \Comment $\Theta(1)$
+			\State $agregarIndiceNat(t,itreg)$ \Comment $O(log (\#registros))$
+		\EndIf
+
+		\If{$\neg EsVacio?(t.indices.iString)$} \Comment $\Theta(1)$
+			\State $agregarIndiceString(t,itreg)$ \Comment $O(L)$
+		\EndIf
+		\medskip
+		\Statex \underline{Complejidad:} $O(L + log (\#registros))$
+		\Statex \underline{Justificación:} Suma de las complejidades de los auxiliares usados para los 2 tipos de indice. O(L) si solo indice String, O(log(\#registros)) si solo indice Nat, y O(L + log (\#registros)) si tiene ambos indices; O(1) si no hay ninguno.
+	\end{algorithmic}
+	{$\textbf{Post} \equiv \{(\neg vacio?(t.indices.iStr) \Rightarrow_L t.indiceStr \igobs agregarIndiceNat(t_0,itreg) \land \\
+							 (\neg vacio?(t.indices.iNat) \Rightarrow_L t.indiceNat \igobs agregarIndiceStr(t_0,itreg) \}$}
+	\\ \\
+	{$agregarIndiceNat(t',itr) \equiv$ \IF $def?(clave,t'.indicesNat)$ THEN $definir(Ag(itr,obtener(t'.indiceNat,claveNat(t'))),t'.indicesNat)$ ELSE $definir(\{itr\},t.indicesNat)$ FI $\}$}\\
+	{$claveNat(t',itr) \equiv valorNat(obtener(siguiente(itr),t'.indices.iNat))$}\\ \\
+
+	{$agregarIndiceStr(t',itr) \equiv$ \IF $def?(clave,t'.indicesStr)$ THEN $definir(Ag(it,obtener(t'.indiceStr,claveStr(t',itr))),t'.indicesStr)$ ELSE $definir(\{itr\},t.indicesStr	)$ FI $\}$}\\
+	{$claveStr(t',itr) \equiv valorStr(obtener(siguiente(itr),t'.indices.iStr))$}\\
+		
+	
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iAgregarIndiceNat}(\Inout{t}{tabla},\In{itreg}{itConj(registro)})}
+	{\\ $\textbf{Pre} \equiv \{t \igobs t_0 \land \neg vacio?(t.indices.iNat)\}$}
+	\begin{algorithmic}[1]
+		\State $Nat: clave \gets valorNat(obtener(siguiente(itreg),t.indices.iNat))$	\Comment por campos acotados $\Theta(1)$
+		\If{$definido?(t.indiceNat,clave))$}	\Comment $O(log (\#registros))$
+			\State $definir(t.indiceNat,clave,AgregarRapido(obtener(t.indiceNat,clave),itreg))$ \Comment $O(log (\#registros))$
+		\Else
+			\State $definir(t.indiceNat,clave,\{itreg\})$ \Comment $O(log (\#registros))$
+		\EndIf
+		\medskip
+		\Statex \underline{Complejidad:} $O(log (\#registros))$
+		\Statex \underline{Justificación:} Busca en el diccionario del indice y lo redefine; ambas operaciones el diccionario las realiza en $O(log (\#registros))$; entonces la complejidad temporal $O(log (\#registros) + log (\#registros))$, quedando $O(log (\#registros))$ por algebra de ordenes. \\ Se usa el agregarRapido del conjunto lineal para agregar el iterador en $O(1)$.
+	\end{algorithmic}
+	{$\textbf{Post} \equiv \{t.indiceNat \igobs$  \IF $def?(clave,t_0.indicesNat)$ THEN $definir(Ag(reg,regAnteriores),t_0.indicesNat)$ ELSE $definir(\{reg\},t_0.indicesNat)$ FI $\}$}\\
+	\\ \\
+	{$clave \equiv valorNat(obtener(siguiente(itreg),t_0.indice.iNat))$}\\
+	{$reg \equiv itreg$} \\
+	{$regAnteriores \equiv obtener(t_0.indicesNat,clave))$}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iAgregarIndiceString}(\Inout{t}{tabla},\In{itreg}{itConj(registro)})}
+	{\\ $\textbf{Pre} \equiv \{t \igobs t_0 \land \neg vacio?(t.indices.iStr)\}$}
+	\begin{algorithmic}[1]
+		\State $String: clave \gets valorStr(obtener(siguiente(itreg),t.indices.iString))$	\Comment por campos acotados $\Theta(1)$
+		\If{$definido?(t.indiceStr,clave)$}	\Comment O(L)
+			\State $definir(t.indiceStr,clave,AgregarRapido(obtener(t.indiceStr,clave),itreg))$ \Comment O(L)
+		\Else
+			\State $definir(t.indiceStr,clave,\{itreg\})$ \Comment O(L)
+		\EndIf
+		\medskip
+		\Statex \underline{Complejidad:} O(L)
+		\Statex \underline{Justificación:} Busca en el diccionario del indice y lo redefine; ambas operaciones el diccionario las realiza en O(L); entonces la complejidad temporal O(L + L), quedando O(L) por algebra de ordenes. Se usa el agregarRapido del conjunto lineal para agregar el iterador en $O(1)$.
+	\end{algorithmic}
+	{$\textbf{Post} \equiv \{t.indiceStr \igobs$  \IF $def?(clave,t_0.indicesStr)$ THEN $definir(Ag(reg,regAnteriores),t_0.indicesStr)$ ELSE $definir(\{reg\},t_0.indicesStr)$ FI $\}$}\\
+	\\ \\
+	{$clave \equiv valorStr(obtener(siguiente(itreg),t_0.indice.iStr))$}\\
+	{$reg \equiv itreg$} \\
+	{$regAnteriores \equiv obtener(t_0.indicesStr,clave))$}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iBorrarIndices}(\Inout{t}{tabla},\In{crit}{registro})}
+	{\\ $\textbf{Pre} \equiv \{t \igobs t_0\}$}
+	\begin{algorithmic}[1]
+
+		\If{$\neg esVacio(t.indice.iNat)$}	\Comment O(1)
+			\State $eliminar(t.indiceNat,valorNat(obtener(crit,t.indices.iNat)))$ \Comment $O(log (\#registros))$
+		\EndIf
+
+		\If{$\neg esVacio(t.indice.iStr)$}	\Comment O(1)
+			\State $eliminar(t.indiceStr,valorStr(obtener(crit,t.indices.iStr)))$ \Comment O(L)
+		\EndIf
+		\medskip
+		\Statex \underline{Complejidad:} $O(L + log (\#registros))$ peor caso
+		\Statex \underline{Justificación:} Suma de las complejidades para eliminar dadas por los diccionarios usados en los indices. O(L) si solo indice String, O(log(\#registros)) si solo indice Nat, y O(L + log (\#registros)) si tiene ambos indices; O(1) si no hay ninguno.
+	\end{algorithmic}
+	{$\textbf{Post} \equiv \{(\neg vacio?(t.indices.iStr) \Rightarrow_L t.indiceStr \igobs eliminar(t_0.indiceStr,claveStr)) \land \\
+							 (\neg vacio?(t.indices.iNat) \Rightarrow_L t.indiceNat \igobs eliminar(t_0.indiceNat,claveNat)) \}$}
+	\\ \\
+	{$claveStr \equiv valorStr(obtener(t_0.indices.iStr,crit))$}\\
+	{$claveNat \equiv valorStr(obtener(t_0.indices.iNat,crit))$}
+
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iCombinarRegistros}(\In{c}{campo},\In{t}{tabla},\In{cr}{conj(registro)}) $\to$ res:conj(registro)}
+	\begin{algorithmic}[1]
+		\If{c = t.indices.iNat} \Comment $\Theta(1)$
+			\State res $\gets$ combinarRegistrosIndiceNat(c,t,cr) \Comment $\Theta$($\#$cr) * (O(log $\#$registros(t)) + $\Theta$(L))
+		\Else
+			\If{c = t.indices.iStr} \Comment $\Theta(1)$
+				\State res $\gets$ combinarRegistrosIndiceStr(c,t,cr) \Comment $\Theta(\#cr * L)$	
+			\Else
+				\State res $\gets$ combinarRegistrosSinIndice(c,t,cr)  \Comment $\Theta(\#registros(t)$ * $\#cr * L)$
+			\EndIf
+		\EndIf
+
+		\medskip
+		\Statex \underline{Complejidad:} 
+		\begin{itemize}
+		\item $\Theta$($\#$cr) * (O(log $\#$registros(t)) + $\Theta$(L)) con indice nat.
+		\item $\Theta(\#reg2$ * $L)$	con indice string.
+		\item $\Theta(\#registros(t)$ * $\#reg2$ * $L)$	sin indices.
+		\end{itemize}
+		\Statex \underline{Justificación:} La complejidad esta justificada en las funciones auxiliares.
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iCombinarRegistrosSinIndice}(\In{c}{campo},\In{t}{tabla},\In{reg2}{conj(registro)}) $\to$ res:conj(registro)}
+	{\\ $\textbf{Pre} \equiv \{enTodos(c,registros(t)) \land enTodos(c,cr)\}$}
+	\begin{algorithmic}[1]
+		\State $res \gets \emptyset$ \Comment $\Theta(1)$
+		\State $itConj(registro): itreg1 \gets CrearIt(registros(t1))$ \Comment	$\Theta(1)$
+		\While{$haySiguiente?(itreg1)$} \Comment $\Theta(\#reg1)$
+			\State $itConj(registro): itreg2 \gets CrearIt(registros(t2))$ \Comment	$\Theta(1)$
+			\While{$haySiguiente?(itreg2)$} \Comment $\Theta(\#reg2)$
+				\If{$obtener(siguiente(itreg1),c) = obtener(siguiente(itreg2),c)$} \Comment $\Theta(L)$
+					\State $registro: reg \gets copiar(siguiente(itreg1))$ \Comment $\Theta(L)$
+					\State $agregarCampos(reg,siguiente(itreg2))$	\Comment $\Theta(L)$
+					\State $agregarRapido(res,reg)$	\Comment $\Theta(L)$
+				\EndIf
+				\State $avanzar(itreg2)$ \Comment $\Theta(1)$
+			\EndWhile
+			\State $avanzar(itreg1)$	\Comment $\Theta(1)$
+		\EndWhile
+		\medskip
+		\Statex \underline{Complejidad:} $\Theta(\#registros(t) *$  $\#reg2$ $* L)$
+		\Statex \underline{Justificación:} A cada registro de reg1 lo compara con todos los de reg2 por medio del campo join el cual es un string no acotado que tiene como costo de comparacion la longitud de el string, para los calculos tomamos L como el mas largo de los string comparados. A esto se le suma la copia de el registro $O(L)$ y agregar campos y la copia al conjunto. Esto en total da $O(\#reg) * O(\#reg1) * (O(L) + O(L) + O(L) + O(L)))$ que por algebra de ordenes $O(\#registros(t) *$ $\#reg2$ $* L)$
+	\end{algorithmic}
+	{$\textbf{Post} \equiv \{res \igobs combinarRegistros(c,registros(t),cr)\}$}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iCombinarRegistrosIndiceNat}(\In{c}{campo},\In{t}{tabla},\In{cr}{conj(registro)}) $\to$ res:conj(registro)}
+	{\\ $\textbf{Pre} \equiv \{enTodos(c,registros(t)) \land enTodos(c,cr)\}$}
+	\begin{algorithmic}[1]
+		\State $res \gets \emptyset$ \Comment $\Theta(1)$
+		\State $itConj(registro): itreg1 \gets CrearIt(cr)$ \Comment	$\Theta(1)$
+		\While{$haySiguiente?(itreg1)$} \Comment $\Theta(\#registros(t))$
+			\State $Nat: filtro \gets valorNat(obtener(siguiente(itreg1),c))$ \Comment $\Theta(L)$
+			\If{$definido?(filtro,t.indicesNat)$} \Comment $O(log \#registros(t))$
+				\State $registro: reg \gets copiar(siguiente(itreg1))$ \Comment $\Theta(L)$
+				\State $itconj(registro): itreg2 \gets siguiente(CrearIt(obtener(t.indiceNat,filtro)))$ \Comment el conjunto de it reg tiene un solo elemento porque el campo es clave $\Theta(log \#registros(t))$
+				\State $agregarCampos(reg,siguiente(itreg2))$	\Comment $\Theta(L)$
+				\State $agregarRapido(res,reg)$	\Comment $\Theta(L)$
+			\EndIf
+			\State $avanzar(itreg1)$	\Comment $\Theta(1)$
+		\EndWhile
+		\medskip
+		\Statex \underline{Complejidad:} $\Theta$($\#$cr) * (O(log $\#$registros(t)) + $\Theta$(L))
+		\Statex \underline{Justificación:} A cada registro de cr lo buscar t por medio del campo join que en este caso es O(log $\#registros(t)$). A esto se le suma la copia de el registro $O(L)$ y agregar campos y la copia al conjunto. Esto en total da $O(\#reg)$ * (O(log $\#$registros(t) + O(L*4)) que por algebra de ordenes $O$($\#$cr * (O(log $\#$registros(t) + $O(L))$)
+	\end{algorithmic}
+	{$\textbf{Post} \equiv \{res \igobs combinarRegistros(c,registros(t),cr)\}$}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iCombinarRegistrosIndiceStr}(\In{c}{campo},\In{t}{tabla},\In{cr}{conj(registro)}) $\to$ res:conj(registro)}
+	{\\ $\textbf{Pre} \equiv \{enTodos(c,registros(t)) \land enTodos(c,cr)\}$}
+	\begin{algorithmic}[1]
+		\State $res \gets \emptyset$ \Comment $\Theta(1)$
+		\State $itConj(registro): itreg1 \gets CrearIt(cr)$ \Comment	$\Theta(1)$
+		\While{$haySiguiente?(itreg1)$} \Comment $\Theta(\#registros(t))$
+			\State $String: filtro \gets valorString(obtener(siguiente(itreg1),c))$ \Comment $O(L)$
+			\If{$definido?(filtro,t.indicesString)$} \Comment $\Theta(L)$
+				\State $registro: reg \gets copiar(siguiente(itreg1))$ \Comment $\Theta(L)$
+				\State $itconj(registro): itreg2 \gets siguiente(CrearIt(obtener(t.indiceString,filtro)))$ \Comment el conjunto de it reg tiene un solo elemento porque el campo es clave $\Theta(L)$
+				\State $agregarCampos(reg,siguiente(itreg2))$	\Comment $\Theta(L)$
+				\State $agregarRapido(res,reg)$	\Comment $\Theta(L)$
+			\EndIf
+			\State $avanzar(itreg1)$	\Comment $\Theta(1)$
+		\EndWhile
+		\medskip
+		\Statex \underline{Complejidad:} $\Theta$($\#$cr * L))
+		\Statex \underline{Justificación:} A cada registro de cr lo buscar t por medio del campo join que en este caso es O(L). A esto se le suma la copia de el registro $O(L)$ y agregar campos y la copia al conjunto. Esto en total da $O(\#cr) * O(L*5))$ que por algebra de ordenes $O(\#cr * O(L))$
+	\end{algorithmic}
+	{$\textbf{Post} \equiv \{res \igobs combinarRegistros(c,registros(t),cr)\}$}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iCoincidencias}(\In{crit}{registro},\In{t}{tabla}) $\to$ res:conj(registro)}
+	\begin{algorithmic}[1]
+		\If{definido?(crit,t.indices.iNat)} \Comment $\Theta(1)$
+			\State res $\gets$ coincidenciasIndiceNat(crit,t) \Comment $O(log ($\#$registros(t)) + L * \#($reg mismo indice$))$
+		\Else
+			\If{definido?(crit,t.indices.iStr)} \Comment $\Theta(1)$
+				\State res $\gets$ coincidenciasIndiceStr(crit,t) \Comment $O(L * \#($reg mismo indice$))$	
+			\Else
+				\State res $\gets$ coincidenciasSinIndice(crit,t)  \Comment $O(\#registros(t) * L)$
+			\EndIf
+		\EndIf
+
+		\medskip
+		\Statex \underline{Complejidad:} 
+		\begin{itemize}
+		\item $O(log ($\#$registros(t)) + L * \#($reg mismo indice$))$ con indice nat.
+		\item $O(L * \#($reg mismo indice$))$	con indice string.
+		\item $O(\#registros(t) * L)$	sin indices.
+		\end{itemize}
+		\Statex \underline{Justificación:} La complejidad esta justificada en las funciones auxiliares.
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iCoincidenciasSinIndice}(\In{crit}{registro},\In{t}{tabla}) $\to$ res:conj(registro)}
+	{\\ $\textbf{Pre} \equiv \{campos(crit) \subseteq campos(t)\}$}
+	\begin{algorithmic}[1]
+		\State $res \gets \emptyset$ \Comment $\Theta(1)$
+		\State $itConj(registro): itreg \gets CrearIt(registros(t))$ \Comment	$\Theta(1)$
+		\While{$haySiguiente?(itreg)$} \Comment $\Theta(\#registros(t))$
+			\If{$coincidenTodos(crit,campos(crit),siguiente(itreg))$}	\Comment $\Theta(L)$
+				\State $agregarRapido(res,siguiente(itreg))$	\Comment $\Theta(L)$
+			\EndIf
+			\State $avanzar(itreg)$	\Comment $\Theta(1)$
+		\EndWhile
+		\medskip
+		\Statex \underline{Complejidad:} $O(\#registros(t) * L)$
+		\Statex \underline{Justificación:} A cada registro de reg1 con los valores de los campos de el criterio el cual es un string no acotado que tiene como costo de comparacion la longitud de el string, para los calculos tomamos L como el mas largo de los string comparados. A esto se le suma la copia de el registro $O(L)$ al conjunto. Esto en total da $O(\#registros(t) * O(L)$ que por algebra de ordenes $O(\#registros(t) * L)$
+	\end{algorithmic}
+	{$\textbf{Post} \equiv \{res \igobs coincidencias(crit,registros(t))\}$}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iCoincidenciaIndiceNat}(\In{crit}{registro},\In{t}{tabla}) $\to$ res:conj(registro)}
+	{\\ $\textbf{Pre} \equiv \{campos(crit) \subseteq campos(t)\}$}
+	\begin{algorithmic}[1]
+		\State $res \gets \emptyset$ \Comment $\Theta(1)$
+		\State $Nat: filtro \gets valorNat(obtener(crit,t.indices.iNat))$ \Comment $\Theta(1)$
+		\If{$definido?(filtro,t.indicesNat)$} \Comment $O(log \#registros(t))$
+			\State $itConj(itConj(registro)): itreg \gets CrearIt(obtener(filtro,t.indicesNat))$ \Comment	$\Theta(1)$
+			\While{$haySiguiente?(itreg)$} \Comment $O(\#($reg mismo indice$))$
+				\If{$coincidenTodos(crit,campos(crit),siguiente(siguiente(itreg)))$}	\Comment $\Theta(L)$
+					\State $agregarRapido(res,siguiente(siguiente(itreg)))$	\Comment $\Theta(L)$
+				\EndIf
+				\State $avanzar(itreg)$	\Comment $\Theta(1)$
+			\EndWhile
+		\EndIf
+		\medskip
+		\Statex \underline{Complejidad:} $O(log ($\#$registros(t)) + L * \#($reg mismo indice$))$
+		\Statex \underline{Justificación:} Busca en criterio si esta definido el valor indice que es O(log $\#registros(t)$). A esto se le suma la copia de el registro $O(L)$. Si el campo no es clave podria haber mas de un registros con el mismo indice. Esto en total da $O(log $\#$registros(t))$ + $O(L*\#(reg mismo indice))$) que por algebra de ordenes $O(log ($\#$registros(t)) + L * \#(reg mismo indice))$
+	\end{algorithmic}
+	{$\textbf{Post} \equiv \{res \igobs coincidencias(crit,registros(t))\}$}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iCoincidenciaIndiceStr}(\In{crit}{registro},\In{t}{tabla}) $\to$ res:conj(registro)}
+	{\\ $\textbf{Pre} \equiv \{campos(crit) \subseteq campos(t)\}$}
+	\begin{algorithmic}[1]
+		\State $res \gets \emptyset$ \Comment $\Theta(1)$
+		\State $String: filtro \gets valorString(obtener(crit,t.indices.iString))$ \Comment $\Theta(L)$
+		\If{$definido?(filtro,t.indicesString)$} \Comment $\Theta(L)$
+			\State $itConj(itConj(registro)): itreg \gets CrearIt(obtener(filtro,t.indicesString))$ \Comment	$\Theta(1)$
+			\While{$haySiguiente?(itreg)$} \Comment $O(\#($registros con mismo valor de indice$))$
+				\If{$coincidenTodos(crit,campos(crit),siguiente(siguiente(itreg)))$}	\Comment $\Theta(L)$
+					\State $agregarRapido(res,siguiente(siguiente(itreg)))$	\Comment $\Theta(L)$
+				\EndIf
+				\State $avanzar(itreg)$	\Comment $\Theta(1)$
+			\EndWhile
+		\EndIf
+		\medskip
+		\Statex \underline{Complejidad:} $O(L * \#($reg mismo indice$))$
+		\Statex \underline{Justificación:} Busca en criterio si esta definido el valor indice que es O(L). A esto se le suma la copia de el registro $O(L)$. Si el campo no es clave podria haber mas de un registros con el mismo indice. Esto en total da $O(L)$ + $O(L*\#(reg mismo indice))$) que por algebra de ordenes $O(L * \#($reg mismo indice$))$
+	\end{algorithmic}
+	{$\textbf{Post} \equiv \{res \igobs coincidencias(crit,registros(t))\}$}
+\end{algorithm}

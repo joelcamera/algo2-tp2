@@ -1,0 +1,435 @@
+\section{Módulo Diccionario String($\alpha$)}
+
+Se representa mediante un árbol n-ario con invariante de trie. Las claves son strings y permite acceder a un significado en tiempo de la longitud de la clave y definir un significado en el mismo tiempo más el tiempo de copy(s) ya que los significados se almacenan por copia.
+
+\subsection{Interfaz}
+
+\textbf{parametros formales}
+
+\textbf{géneros}: \TipoVariable{$\alpha$}.
+
+\textbf{funcion}: \InterfazFuncion{Copiar}{\In{s}{$\alpha$}}{$\alpha$}
+				  [true]
+				  {res $=_{obs}$ s}
+				  [$O(copy(s))$]
+				  [funcion de copia de $\alpha$.]
+				  []
+
+\textbf{se explica con}: \tadNombre{Diccionario(String,$\alpha$)},\tadNombre{IteradorBidireccional(String)}.
+
+\textbf{géneros}: \TipoVariable{diccString($\alpha$)}.
+
+
+
+~
+
+\subsubsection{Operaciones básicas de Diccionario String($\alpha$)}
+
+\InterfazFuncion{CrearDiccionario}{}{}
+{res $=_{obs}$ vacío()}
+[$O(1)$]
+[Crea un diccionario vacío.]
+[]
+
+~
+
+
+
+\InterfazFuncion{Definido?}{\In{d}{diccString$(\alpha)$}, \In{c}{string})}{bool}
+[true]
+{$res$ $\igobs$ def?($d$, $c$)}
+[$O(long(c))$]
+[Devuelve true si la clave está definida en el diccionario y false en caso contrario.]
+[]
+
+~
+
+\InterfazFuncion{Definir}{\Inout{d}{diccString$(\alpha)$}, \In{c}{string}, \In{s}{$\alpha$}}{}
+[$ d \igobs d_0 $]
+{$ d \igobs$ definir($c$, $s$, $d_0$)}
+[O(L + copy(s)) donde L es el largo de la clave mas larga definida en el diccionario]
+[Define la clave $c$ con el significado $s$.]
+[Se almacena una copia de $s$.]
+
+~
+
+\InterfazFuncion{Obtener}{\In{d}{diccString$(\alpha)$}, \In{c}{string}}{$\alpha$}
+[def?($c$, $d$)]
+{alias($res$ $\igobs$ obtener($c$, $d$))}
+[$\Theta(long(c))$]
+[Devuelve el significado correspondiente a la clave $c$.]
+[Se devuelve por rerefencia el significado almacenado en el diccionario.]
+
+~
+
+\InterfazFuncion{Borrar}{\Inout{d}{diccString($\alpha$)}, \In{c}{string}}{}
+[$ d \igobs d_0 \land $ def?($d$, $c$)]
+{$ d \igobs$ borrar($d_0$, $c$)}
+[O(L) donde L es el largo de la clave mas larga definida en el diccionario]
+[Borra la clave $c$ del diccionario y su significado.]
+[]
+
+~
+
+\InterfazFuncion{CrearItClaves}{\In{d}{diccString($\alpha$)}}{itConj(String)}
+[true]
+{res $\igobs$ CrearItBi(claves(d)) $\land$ alias(esPermutacion?(SecuSuby(res), claves(d)))}
+[$\Theta(1)$]
+[Devuelve un iterador a las claves del diccionario]
+[El iterador es no modificable y se invalida luego de eliminar o definir una clave en el diccionario]
+
+~
+
+\InterfazFuncion{ClaveMinima}{\In{d}{diccString($\alpha$)}}{string}
+[true]
+{\IF \#(claves(d))=0 THEN res = <> ELSE \\
+ res $\in$ claves(d) $\yluego$  $(\forall s:\text{string})$ s $\in$ claves(d) $\land$ s $\neq$ res $\implies$ res $<$ s  FI}
+[$\Theta(1)$]
+[Devuelve la clave minima del diccionario, utilizando el orden lexicografico, o el string vacio si no hay claves definidas]
+[Se deuvelve una referencia no modificable a la clave]
+
+~
+
+\InterfazFuncion{ClaveMaxima}{\In{d}{diccString($\alpha$)}}{string}
+[true]
+{\IF \#(claves(d))=0 THEN res = <> ELSE \\
+ res $\in$ claves(d) $\yluego$  $(\forall s:\text{string})$ s $\in$ claves(d) $\land$ s $\neq$ res $\implies$ res $>$ s  FI}
+[$\Theta(1)$]
+[Devuelve la clave maxima del diccionario, utilizando el orden lexicografico, o el string vacio si no hay claves definidas]
+[Se deuvelve una referencia no modificable a la clave]
+
+~
+
+
+
+\pagebreak
+
+\subsubsection{Representación}
+
+\begin{Estructura}{ diccString($\alpha$)}[estr]
+	\begin{Tupla}[estr]
+		\tupItem{raiz}{puntero(Nodo)}
+		\tupItem{\\claves}{conj(string)}
+		\tupItem{\\min}{string}
+		\tupItem{\\max}{string}
+	\end{Tupla}
+
+	~
+
+	\begin{Tupla}[Nodo]
+		\tupItem{hijos}{arreglo(puntero(Nodo))}%
+		\tupItem{\\	info}{puntero($\alpha$)}%
+		\tupItem{\\ clave}{itConj(string)}
+		\tupItem{\\ padre}{puntero(nodo)}
+		\tupItem{\\ idx}{nat}
+	\end{Tupla}
+
+\end{Estructura}
+
+\subsubsection{Invariante de Representación}
+
+
+%\renewcommand{\labelenumi}{(\Roman{enumi})}
+
+\begin{enumerate}
+	\item Nodo representa un arbol con invariarnte de trie de 256 posiciones
+	\item Min es la minima clave de las claves del diccionario si hay alguna, sino es un string vacio.
+	\item Max es la maxima clave de las claves del diccionario si hay alguna, sino es un string vacio.
+	\item Idx del nodo es un entero menor que 256
+	\item Padre apunta al nodo del cual es hijo en la posicion idx, salvo que sea raiz y en ese caso es NULL 
+	\item Desreferenciando el padre de un nodo siempre se llega a la raiz y nunca se repite un nodo.
+	\item Un nodo puede tener significado, o representar los caracteres de la clave que conducen a un significado.
+	\item Si un nodo tiene significado, el puntero info apunta al significado, sino es NULL
+	\item Si un nodo tiene significado, clave es un iterador de las claves del diccionario cuyo siguiente es la clave en la que esta definido.
+	\item Todos los elementos del arreglo hijos de un nodo, son NULL o son nodos validos
+
+\end{enumerate}
+
+
+
+\Rep[estr][e]{
+	\\(1) $\lnot$(e.raiz = NULL) $\yluego$ nodoValido(e.raiz)
+	\\(2) \IF \#(e.claves)=0 THEN e.min = <> ELSE  e.min $\in$ e.claves $\yluego$  $(\forall s:\text{string})$ s $\in$ e.claves $\land$ s $\neq$ e.min $\implies$ e.min $<$ s  FI
+	\\(3) \IF \#(e.claves)=0 THEN e.max = <> ELSE e.max $\in$ e.claves $\yluego$  $(\forall s:\text{string})$ s $\in$ e.claves $\land$ s $\neq$ e.max $\implies$ e.max $>$ s  FI
+}\mbox{}
+
+
+~
+\tadOperacion{nodoValido}{puntero(Nodo)/nodo,estr/e}{bool}{}
+\tadAxioma{nodoValido($nodo$, $e$)}{
+	(1) tam(nodo$\rightarrow$hijos) = 256 $\yluego$ \\
+	(4) $nodo \rightarrow idx$ $<$ 256 $\yluego$ \\ 
+	(5) $nodo \rightarrow padre$ = NULL $\iff$ e.raiz = $nodo$ $\yluego$ \\
+	(7,8,9)$\lnot$($nodo \rightarrow padre$ = NULL) $\implies$ $nodo \rightarrow padre \rightarrow hijos[ nodo \rightarrow idx ] $ = $nodo$ $\yluego$ \\
+	reconstruirClave($nodo$) $\in$ e.claves $\iff$  $ \lnot (nodo \rightarrow  info = NULL)$ $\land$ siguiente(*($nodo \rightarrow clave$)) = reconstruirClave($nodo$)
+	\\(10)	($\forall i$ Nat) i < 256 $\yluego$ $\lnot$ ($nodo \rightarrow hijos [i] = NULL) \impluego $  nodoValido($nodo \rightarrow hijos [i] $, e)
+}
+
+
+\tadOperacion{reconstruirClave}{puntero(Nodo)/nodo}{string}{}
+\tadAxioma{reconstruirClave($nodo$)}{ \IF $nodo \rightarrow padre = NULL $ THEN <> ELSE  reconstruirClave($nodo \rightarrow padre$) $\circulito$ $Ord^{-1}$($nodo \rightarrow idx$) FI }
+
+
+
+\subsubsection{Funci\'on de Abstracci\'on}
+
+\Abs[estr]{diccString($\alpha$)}[e]{d}{
+($\forall s$: string) ( (def?($s$, $d$) $\iff$ s $\in$ e.claves) $\yluego$ \\ 
+	(def?($s$, $d$) $\impluego$ obtener($s$, $d$) $\igobs$ obtenerSignificado(s, e.raiz) ) 
+}
+
+\tadOperacion{obtenerSignificado}{String/s,puntero(Nodo)/nodo}{$\alpha$}{}
+\tadAxioma{obtenerSignificado(s,nodo)}{ \IF Vacio?(s) THEN *($nodo \rightarrow info$) ELSE 
+obtenerSignificado(Fin(s), $nodo \rightarrow hijos$[Ord(prim(s))]) FI }
+
+
+
+\subsection{Algoritmos}
+
+%\lstset{style=alg}
+
+
+\begin{algorithm}[H]{\textbf{iCrearDiccionario}() $\to$ $res$ : estr}
+	\begin{algorithmic}[1]
+		\State estr $res$ $\gets$ $\langle$ CrearNodo(NULL, 0), Vacio(), Vacia(), Vacia() $\rangle$ \Comment O(1)
+		\medskip
+		\Statex \underline{Complejidad:} O(1)
+		\Statex \underline{Justificación:} CrearNodo es en O(1) y crear una tupla de contenedores vacios es O(1).
+    \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iCrearNodo}(\In{padre}{puntero(Nodo)},\In{idx}{nat}) $\to$ $res$ : puntero(nodo)}
+	{\\ $\textbf{Pre}$ $\equiv$ 0 $\leq$ idx < 256}
+	\begin{algorithmic}[1]
+
+		\State nodo n $\gets$ $\langle$ CrearArreglo(256), NULL, CrearIt(Vacio()), padre, idx $\rangle$  \Comment O(256) $\in$ O(1)
+		\State nat i $\gets$ 0 					\Comment $O(1)$
+		\While{i < 256} 								\Comment O(256) $\in$ O(1)
+		 	\State n.hijos[i] $\gets$ NULL 		\Comment $O(1)$
+			\State $i \gets i + 1$ \Comment $O(1)$
+		\EndWhile
+		\State res $\gets$ \&(n)          \Comment O(1)
+
+		\medskip
+		\Statex \underline{Complejidad:} O(1)
+		\Statex \underline{Justificación:} Sumas de O(1)
+    \end{algorithmic}
+    {$\textbf{Post}$ $\equiv$ *res $\igobs$ $\langle$ CrearArreglo(256), NULL, CrearIt($\emptyset$), padre, idx $\rangle$ $\yluego$ \\ ($\forall$ i : Nat) i $<$ 256 $\impluego$ res$\rightarrow$ hijos[i] = NULL  }
+
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iBuscarYCrear}(\Inout{n}{puntero(Nodo)},\In{clave}{string},\In{crear?}{bool}) $\to$ $res$ : puntero(nodo)}
+	{\\ $\textbf{Pre}$ $\equiv$ $n \igobs n_0$ $\land$ ($n_0 \neq$ NULL)  }
+	\begin{algorithmic}[1]
+		\State nat i $\gets$ 0  									\Comment O(1)
+
+		\While{i $<$ longitud(clave) $\land$ $\lnot$(n = NULL) } 	\Comment O(long(clave)) 
+			\State nat idx $\gets$ ord(clave[i])								\Comment O(1)
+			\If{$n \rightarrow hijos$[idx] = NULL $\land$ crear?} 		\Comment O(1)
+				\State $n \rightarrow hijos$[idx] $\gets$ CrearNodo(n, idx)		\Comment O(1)
+			\EndIf	
+					
+			\State n $\gets$ $n \rightarrow hijos$[idx]		\Comment O(1)
+			\State $i \gets i + 1$ 											\Comment O(1)
+		\EndWhile
+		\State res $\gets$ n					\Comment O(1)
+		\medskip
+		\Statex \underline{Complejidad:} O(long(clave))
+		\Statex \underline{Justificación:} El ciclo se ejecuta a lo sumo una cantidad de veces igual a la longitud de la clave, y las operaciones que se realizan son O(1).
+    \end{algorithmic}
+    {$\textbf{Post}$ $\equiv$ \\
+     \IF BuscaNodo($n_0$, $clave$) = NULL $\land$ crear? THEN   
+     (n se modifica, creando recursivamente nodos nuevos donde n$\rightarrow$hijos[$c_i$] = NULL) $\yluego$
+    	res $\igobs$ BuscaNodo($n$, $clave$) 
+     ELSE 
+     res $\igobs$ BuscaNodo($n_0$, $clave$) $\land$ n $\igobs$ $n_0$ 
+     FI }
+\end{algorithm}
+
+
+    
+\tadOperacion{BuscaNodo}{puntero(Nodo)/p, String/c}{puntero(Nodo)}{}
+
+\tadAxioma{BuscaNodo(p,c)}{
+	\IF p = NULL THEN NULL
+	ELSE{
+		\IF long(c) = 1 THEN p$\rightarrow$hijos[orden(prim(c))]
+		ELSE BuscaNodo(p$\rightarrow$hijos[ord(prim(c))], ult(c))
+		FI
+	}
+	FI
+}
+
+
+\begin{algorithm}[H]{\textbf{iDefinido?}(\In{d}{estr)}, \In{clave}{string}) $\to$ $res$ : $bool$}
+	\begin{algorithmic}[1]
+		\State puntero(nodo) n $\gets$ BuscarYCrear(d.raiz, clave, false)     \Comment O(long(clave))
+		\State res $\gets$ $\lnot$(n = NULL) $\yluego$ $\lnot$(n $\rightarrow$ info = NULL)  \Comment O(1)
+		\medskip
+		\Statex \underline{Complejidad:} O(long(clave))
+		\Statex \underline{Justificación:} La complejidad esta determinada por la operacion BuscarYCrear
+    \end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iDefinir}(\Inout{d}{estr}, \In{clave}{string}, \In{s}{$\alpha$})}
+	\begin{algorithmic}[1]
+
+		\State puntero(nodo) n $\gets$ BuscarYCrear(d.raiz, clave, true)     \Comment $\Theta$(long(clave))
+		\If{ d.info = NULL} 													\Comment O(1)
+			\State d.info $\gets$ \&( copy(s)	)					\Comment $\Theta$(copy(s))
+			\State d.clave $\gets$ AgregarRapido(d.claves, clave)			\Comment $\Theta$(copy(clave))
+			\State actualizarMin(d)		\Comment O(max(longs(claves(d))))
+			\State actualizarMax(d)		\Comment O(max(longs(claves(d))))
+		\Else
+			\State d.info $\gets$ NULL							\Comment O(1)
+			\State d.info $\gets$ \&( copy(s)	)					\Comment $\Theta$(copy(s))
+		\EndIf
+
+		\medskip
+		\Statex \underline{Complejidad:} O(L + copy(s)) Donde L es la clave mas larga definida en el diccionario.
+		\Statex \underline{Justificación:} La complejidad esta dada por suma de otras operaciones, donde 
+		$\Theta$(long(clave)) y $\Theta$(copy(clave)) $\in$ O(L), con lo cual la suma es entre las dos determinantes independientes L y copy(s) 
+    \end{algorithmic}
+\end{algorithm}
+
+
+
+\begin{algorithm}[H]{\textbf{iObtener}(\In{d}{estr}, \In{clave}{string}) $\to$ $res$ : $\alpha$}
+	\begin{algorithmic}[1]
+		\State puntero(nodo) n $\gets$ BuscarYCrear(d.raiz, clave, false)     \Comment $\Theta$(long(clave))
+		\State res $\gets$ *(n $\rightarrow$ info)									    \Comment O(1)
+		\medskip
+		\Statex \underline{Complejidad:} $\Theta$(long(clave))
+		\Statex \underline{Justificación:} La complejidad esta determinada por la operacion BuscarYCrear ya que el resultado se devuelve por referencia, como para usar obtener tiene que estar definidio, siempre es $\Theta$(long(clave))
+    \end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iBorrar}(\Inout{d}{estr}, \In{clave}{string})}
+	\begin{algorithmic}[1]
+
+		\State puntero(nodo) n $\gets$ BuscarYCrear(d.raiz, clave, false)     \Comment O(long(clave))
+		\State $n \rightarrow info$ $\gets$ NULL 					\Comment O(1)
+		\State eliminarSiguiente(n.clave)							\Comment se elimina la clave del conjunto de claves O(1)
+		\State n.clave $\gets$ CrearIt(Vacio())				\Comment se apunta a null O(1)
+		\While{$\lnot$(n = NULL) $\yluego$ $\lnot$(tieneHijos(n))}	\Comment por Rep, O(long(clave)) * O(1)
+			\State puntero(nodo) padre $\gets$ $n \rightarrow padre$		\Comment O(1)
+			\If{$\lnot$(padre = NULL)} 														\Comment O(1)
+				\State padre[$n \rightarrow idx$] $\gets$ NULL			\Comment se elimina el nodo O(1)					
+			\EndIf
+			\State n $\gets$ padre								\Comment O(1)
+		\EndWhile
+	
+		\State actualizarMin(d)		\Comment O(max(longs(claves(d))))
+		\State actualizarMax(d)		\Comment O(max(longs(claves(d))))
+
+		\medskip
+		\Statex \underline{Complejidad:} O(L) Donde L es la clave mas larga definida en el diccionario.
+		\Statex \underline{Justificación:} El algoritmo recorre desde el nodo hasta la raiz, eliminando si es necesario los nodos intermedios, esto se realiza a lo sumo O(long(clave)). De todas maneras como estamos actualizando los minimos y maximos y esto tiene una complejidad de O(L), y O(long(clave)) $\in$ O(L), esto determina la complejidad.
+    \end{algorithmic}
+\end{algorithm}
+
+
+
+\begin{algorithm}[H]{\textbf{iCrearItClaves}(\In{d}{estr}) $\to$ $res$ : itConj(string)}
+	\begin{algorithmic}[1]
+		\State res $\gets$ CrearIt(d.claves)									    \Comment O(1)
+		\medskip
+		\Statex \underline{Complejidad:} O(1)
+    \end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iClaveMinima}(\In{d}{estr}) $\to$ $res$ : string}
+	\begin{algorithmic}[1]
+		\State res $\gets$ d.min								    \Comment O(1)
+		\medskip
+		\Statex \underline{Complejidad:} O(1)
+		\Statex \underline{Justificación:} Se devuelve por referencia	
+    \end{algorithmic}
+\end{algorithm}
+
+
+
+\begin{algorithm}[H]{\textbf{iClaveMaxima}(\In{d}{estr}) $\to$ $res$ : string}
+	\begin{algorithmic}[1]
+		\State res $\gets$ d.max								    \Comment O(1)
+		\medskip
+		\Statex \underline{Complejidad:} O(1)
+		\Statex \underline{Justificación:} Se devuelve por referencia		
+    \end{algorithmic}
+\end{algorithm}
+
+
+
+
+
+
+\begin{algorithm}[H]{\textbf{iTieneHijos}(\In{nodo}{puntero(Nodo)}) $\to$ $res$ : $bool$}
+	{\\ $\textbf{Pre}$ $\equiv$ nodo!=NULL}
+	\begin{algorithmic}[1]
+		\State nat i $\gets$ 0 \Comment $O(1)$
+		\While{i $<$ 256 $\yluego$ $nodo \rightarrow hijos$[i]=NULL )} \Comment O(256) $\in$ O(1)
+			\State $i \gets i + 1$ \Comment $O(1)$
+		\EndWhile
+		\State res $\gets$ i $<$ 256     \Comment $O(1)$
+
+		\medskip
+		\Statex \underline{Complejidad:} $O(1)$
+		\Statex \underline{Justificación:} Recorre el arreglo de 256 posiciones en caso de que todas las posiciones del mismo tengan NULL. Como es una constante ya que en el peor caso siempre recorre a lo sumo 256 posiciones entonces es O(1).
+
+    \end{algorithmic}
+    {$\textbf{Post}$ $\equiv$ res $=_{obs}$  ($\exists i$) i < 256 $\yluego$ $\lnot$($nodo \rightarrow hijos$[i]=NULL) }
+\end{algorithm}
+
+
+
+
+\begin{algorithm}[H]{\textbf{iActualizarMin}(\Inout{d}{estr})}
+	{\\ $\textbf{Pre}$ $\equiv$ $\lnot$(d=NULL) $\land$ Rep(d) }
+	\begin{algorithmic}[1]
+		\State d.min $\gets$ Vacio()					\Comment O(1)
+		\If{longitud(d.claves) > 0} 								\Comment O(1)
+			\State nodo n $\gets$ d.raiz						\Comment O(1)
+			\While{$n \rightarrow info$ = NULL}		\Comment O(max(long(claves(d)))
+				\State nat i $\gets$ 0								\Comment O(1)
+				\While{i $<$ 256 $\land$ $n \rightarrow hijos$[i] = NULL} 		\Comment O(256) $\in$ O(1)
+					\State i $\gets$ i + 1				\Comment O(1)
+				\EndWhile
+				\State n $\gets$ $n \rightarrow hijos$[i]			\Comment O(1)
+			\EndWhile
+			\State d.min $\gets$  copy(Siguiente(n.clave)) \Comment O(copy(clave))  
+		\EndIf
+		\medskip
+		\Statex \underline{Complejidad:} O(L) Done L es la clave mas larga definida en el diccionario
+		\Statex \underline{Justificación:} El ciclo principal va recorriendo los nodos hasta que encuentra el primer significado, esto se ejecuta a lo sumo L veces. Luego las operaciones del ciclio son O(1), por lo tanto O(L)*O(1) $\in$ O(L). Luego se copia la clave, pero esto tambien es O(L), por lo cual O(L) + O(L) = O(L)
+    \end{algorithmic}
+    {$\textbf{Post}$ $\equiv$ \IF \#(d.claves)=0 THEN d.min = <> ELSE  d.min $\in$ d.claves $\yluego$  $(\forall s:\text{string})$ s $\in$ d.claves $\land$ s $\neq$ d.min $\implies$ d.min $<$ s  FI  }
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iActualizarMax}(\Inout{d}{estr})}
+	{\\ $\textbf{Pre}$ $\equiv$ $\lnot$(d=NULL) $\land$ Rep(d) }
+	\begin{algorithmic}[1]
+		\State d.max $\gets$ Vacio()					\Comment O(1)
+		\If{longitud(d.claves) > 0} 								\Comment O(1)
+			\State nodo n $\gets$ d.raiz						\Comment O(1)
+			\While{tieneHijos(n)}									\Comment O(max(long(claves(d))) * O(1)
+				\State nat i $\gets$ 0								\Comment O(1)
+				\While{i $<$ 256 $\land$ $n \rightarrow hijos$[256 - i - 1] = NULL} 		\Comment O(256) $\in$ O(1)
+					\State i $\gets$ i + 1				\Comment O(1)
+				\EndWhile
+				\State n $\gets$ $n \rightarrow hijos$[i]			\Comment O(1)
+			\EndWhile
+			\State d.max $\gets$  copy(Siguiente(n.clave)) \Comment O(copy(clave))  
+		\EndIf
+		\medskip
+		\Statex \underline{Complejidad:} O(L)
+		\Statex \underline{Justificación:} El ciclo principal va recorriendo los nodos hasta que encuentra el primer significado, esto se ejecuta a lo sumo L veces. Luego las operaciones del ciclio son O(1), por lo tanto O(L)*O(1) $\in$ O(L). Luego se copia la clave, pero esto tambien es O(L), por lo cual O(L) + O(L) = O(L)
+    \end{algorithmic}
+    {$\textbf{Post}$ $\equiv$ \IF \#(d.claves)=0 THEN d.max = <> ELSE d.max $\in$ d.claves $\yluego$  $(\forall s:\text{string})$ s $\in$ d.claves $\land$ s $\neq$ d.max $\implies$ d.max $>$ s  FI  }
+\end{algorithm}
+
+

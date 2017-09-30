@@ -1,0 +1,688 @@
+\section{M\'odulo Base De Datos}
+
+\subsection{Interfaz}
+
+\textbf{se explica con}: \tadNombre{BaseDeDatos}, \tadNombre{IteradorUnidireccional($\alpha$)}.
+
+\textbf{géneros}: base
+
+
+~
+
+
+\subsubsection{Operaciones b\'asicas de BaseDeDatos}
+
+\begin{Interfaz}
+
+\InterfazFuncion{nuevaDB}{}{base}
+[true]
+{$res \igobs$ nuevaDB()}
+[O(1)]
+[Crea una nueva base vacia.]
+[]
+
+~
+
+\InterfazFuncion{agregarTabla}{\In{ta}{tabla}, \Inout{db}{base} }{bool}
+[$db \igobs db_0$ $\land$ $\emptyset$?(registros($ta$))]
+{res $\igobs$ nombre($ta$) $\notin$ tablas($db_0$) $\yluego$ \IF res THEN $db \igobs $ agregarTabla($ta$, $db_o$) ELSE $db \igobs db_0$  FI    }
+[O(1)]
+[Agrega una nueva tabla a la base si el nombre de la tabla no existe ya en la base, si ya existe devuelve false.]
+[La tabla se copia dentro de la estructura de la base.]
+
+~
+
+\InterfazFuncion{insertarEntrada}{\In{reg}{registro}, \In{t}{string}, \Inout{db}{base} }{}
+[$db \igobs db_o$ $\land$ $t \in$ tablas($db$) $\yluego$ puedoInsertar?($reg$, $t$)]
+{$db \igobs $ insertarEntrada($reg$, $t$, $db_o$)}
+[ O(T * L + in) donde T es la cantidad de tablas, L el maximo largo de un string en un registro y in = O(log(n)) en promedio si tiene indice en campo nat y O(1) sino, donde n es la cantidad de registros de la tabla. ]
+[Agrega un registro a la tabla $t$.]
+[El registro se copia en la estructura de la base.]
+
+~
+
+\InterfazFuncion{borrar}{\In{cr}{registro}, \In{t}{string}, \Inout{bd}{base} }{}
+[$bd \igobs bd_o$ $\land$ \#campos($cr$)$=1$ $\land$ $t \in$ tablas($db$)]
+{$bd \igobs $borrar($cr$, $t$, $bd_o$)}
+[O(T * L + in)  donde T es la cantidad de tablas, L el maximo largo de un string en un registro y in = O(log(n)) en promedio si el criterio tiene indice Nat, O(L) si el criterio tiene indice string y O(L * n) si el criterio no es indice.]
+[Borra un registro a la tabla $t$.]
+[]
+
+~
+
+\InterfazFuncion{generarVistaJoin}{\In{t1}{string}, \In{t2}{string}, \In{c}{campo}, \Inout{db}{base} }{itConj(registro)}
+[$bd \igobs bd_o$ $\land$ $t1 \neq t2 \land \{t1,t2\} \subseteq$ tablas($db$) $\yluego$ $c \in$ claves(dameTabla($t1$,$db$)) $\land$ \\ $\land$ $c \in $ claves(dameTabla($t2$, $db$)) $\land$ $\neg$hayJoin?($t1$,$t2$,$db$)]
+{$bd = $ generarVistaJoin($t1$, $t2$, $c$, $bd_o$) $\land$ $res$ = CrearItUni(vistaJoin($bd$)) $\land$ alias(esPermutacion?(SecuSuby($res$), vistaJoin($bd$))}
+[Si c no es indice en T1, O(n*m*L), sino O(n+m) * O(L + in) donde in es O(log(n+m)) si c es indice en nat y O(1) es es indice en str. (donde n es \#(registros(obtener(t1,db))), m es \#(registros(obtener(t2,db))) y L el string mas largo en alguno de los registros.)]
+[Genera un join de la tabla $t1$ con la tabla $t2$ uniendo sus registros donde coincide el campo clave $c$ y devuelve un iterador a los registros.]
+[El iterador es no modificable y se invalida al insertar o borrar registros de alguna de las tablas del join.]
+
+~
+
+\InterfazFuncion{tablas}{\In{bd}{base}}{itConj(string)}
+[true]
+{$res$ = CrearItUni(tablas($bd$)) $\land$ alias(esPermutacion?(SecuSuby($res$), tablas($bd$))}
+[O(1)]
+[Devuelve un iterador del conjunto de nombres de las tablas de la base de datos.]
+[El iterador es no modificable y se invalida al agregar una nueva tabla.]
+
+~
+
+\InterfazFuncion{dameTabla}{\In{t}{string}, \In{db}{base} }{tabla}
+[$t \in$ tablas($db$)]
+{$res \igobs$ dameTabla($t$, $db$)}
+[O(1)]
+[Devuelve la tabla del registro que tiene el nombre $t$ pasado como parametro.]
+[La tabla se devuelve por referencia no modificable.]
+
+~
+
+\InterfazFuncion{hayJoin?}{\In{t1}{string}, \In{t2}{string}, \In{db}{base} }{bool}
+[$t1 \neq t2 \land \{t1, t2\} \subseteq$ tablas($db$)]
+{$res \igobs$ hayJoin?($t1$, $t2$, $db$)}
+[O(1)]
+[Devuelve true si la tabla $t1$ posee un join con la tabla $t2$.]
+[]
+
+~
+
+\InterfazFuncion{campoJoin}{\In{t1}{string}, \In{t2}{string}, \In{db}{base} }{campo}
+[hayJoin?($t1$, $t2$, $db$)]
+{$res \igobs$ campoJoin($t1$, $t2$, $db$)}
+[O(1)]
+[Devuelve el campo del join entre las tablas $t1$ y $t2$.]
+[Se devuelve una referencia no modificable.]
+
+~
+
+\InterfazFuncion{registros}{\In{t}{string}, \In{db}{base} }{registros}
+[$t \in$ tablas($db$)]
+{$res$ = CrearItUni(registros($t$,$bd$)) $\land$ alias(esPermutacion?(SecuSuby($res$), registros($t$,$bd$))}
+[O(1)]
+[Devuelve el conjunto de registros de la tabla t.]
+[Devuelve una referencia no modificable.]
+
+~
+
+\InterfazFuncion{vistaJoin}{\In{t1}{string}, \In{t2}{string}, \In{db}{base} }{itConj(registros)}
+[hayJoin?($t1$, $t2$, $db$)]
+{$res$ = CrearItUni(vistaJoin($t1$, $t2$, $db$)) $\land$ alias(esPermutacion?(SecuSuby($res$), vistaJoin($t1$, $t2$, $db$))}
+[$\Theta$(R) * O(L + log(n+m)) si c es indice en t1 y t2, $\Theta$(R) * O(L * n * m) sino, si R=0 es O(1), donde R es la cantidad de cambios desde la ultima vista o generacion del join, n y m la cantidad de registros de las tablas t1 y t2 y L el string mas largo en los registros de estas tablas]
+[Devuelve un iterador a los registros del join ya generado entre $t1$ y $t2$.]
+[El iterador es no modificable y se invalida al insertar o borrar registros de alguna de las tablas del join.]
+
+~
+
+\InterfazFuncion{cantidadDeAccesos}{\In{t}{string}, \In{db}{base} }{nat}
+[$t \in$ tablas($db$)]
+{$res \igobs$ cantidadDeAccesos($t$,$db$)}
+[O(1)]
+[Devuelve la cantidad de modificaciones que tuvo la tabla con nombre $t$.]
+[]
+
+~
+
+\InterfazFuncion{tablaMaxima}{\In{db}{base}}{string}
+[tablas($db$) $\neq \emptyset$]
+{$res \igobs$ tablaMaxima($db$)}
+[O(1)]
+[Devuelve el nombre de la tabla, o el de una de las tablas, que tuvo mayor cantidad de modificaciones en la base.]
+[Devuelve una referencia no modificable]
+
+~
+
+\InterfazFuncion{buscar}{\In{criterio}{registro}, \In{t}{string}, \In{db}{base} }{conj(registro)}
+[$t \in$ tablas($db$)]
+{$res$ = CrearItUni(buscar($criterio$, $t$, $db$)) $\land$ alias(esPermutacion?(SecuSuby($res$), buscar($criterio$, $t$, $db$))}
+[O($L+log(n)$) en promedio si alguno de los criterios de búsqueda $r$ es un campo clave con índice en la tabla $t$.
+ O(L) en promedio si hay indice string y $O(\#registros(t) * L)$ si no hay indices.]
+[Devuelve el conjunto de los registros que tiene la tabla $t$ que coinciden con el criterio de busqueda.]
+[Se devuelve un conjunto de registros por copia]
+
+~
+
+\InterfazFuncion{borrarJoin}{\In{t1}{string}, \In{t2}{string}, \Inout{db}{base} }{}
+[$bd \igobs bd_o$ $\land$ hayJoin?($t1$, $t2$, $db$)]
+{$bd = $borrarJoin($t1$, $t2$, $c$, $bd_o$)}
+[O(1)]
+[Borra el join que tenia la tabla $t1$ con la tabla $t2$.]
+[]
+
+\end{Interfaz}
+
+~
+
+\pagebreak
+\subsubsection{Representaci\'on de BaseDeDatos}
+
+La estructura de base esta pensada para mantener organizada y accesible toda la informacion de la base de datos, esto se realiza utilizando al modulo tabla para organizar los registros, y estructuras auxiliares para mantener los joins entre tablas, y los cambios realizados en las tablas luego de que un join se haya creado. Por otro lado tambien se mantiene informacion para acceder a la tabla mas modificada.
+
+
+\begin{Estructura}{BaseDeDatos}[estr]
+	\begin{Tupla}[estr]
+		\tupItem{tablas}{diccString(infoTabla)}
+		\tupItem{\\ tablaMaxima}{string}
+		\tupItem{\\ maxModificaciones}{nat}
+	\end{Tupla}
+
+	~
+
+	\begin{Tupla}[infoTabla]
+		\tupItem{tabla}{tabla}%
+		\tupItem{\\ joinsCon}{diccString(infoJoin)}%
+		\tupItem{\\ esJoinDe}{diccString(puntero(infoJoin))}
+	\end{Tupla}
+
+	~
+
+	\begin{Tupla}[infoJoin]
+		\tupItem{campo}{string}%
+		\tupItem{\\ join}{tabla}%
+		\tupItem{\\ cambiosT1}{lista(cambio)}
+		\tupItem{\\ cambiosT2}{lista(cambio)}
+	\end{Tupla}
+
+~
+
+	\begin{Tupla}[cambio]
+		\tupItem{borrado?}{bool}%
+		\tupItem{reg}{registro}%
+	\end{Tupla}
+
+
+
+\end{Estructura}
+
+~
+
+\subsubsection{Invariante de Representaci\'on}
+
+
+\begin{enumerate}
+	\item TablaMaxima es un string vacio si no hay tablas, sino es el nombre de la tabla con mas accessos y maxModificaciones es 0 si no hay tablas, sino es el numero de modificaciones de la tablaMaxima
+	
+	\item Las claves del diccionario joinsCon y las claves de esJoinDe en la tupla de los significados del diccionario tablas, son un subconjunto de los nombre de tabla, y donde no puede estar el nombre de tabla por el que se accedio al significado.
+	
+	\item El nombre de la tabla en infoTabla es igual a la clave por la cual se accedio a infoTabla en el diccionario tablas.
+	
+	\item En esJoinDe hay un puntero al infoJoin que se accede cambiado el orden de t1 y t2 al acceder a los joins
+	
+	\item En el significado infoJoin, campo, pertenece a las claves de la tabla join y a las claves de la tabla con la que se hizo el join, y en las dos tablas tienen el mismo tipo
+	
+	\item Todos los registros de la lista cambiosT1 en todos los significados de joinsCon en infoTabla tienen los mismos tipos que las columnas de tabla.
+
+	\item Todos los registros de la lista cambiosT2 en todos los significados de joinsCon en infoTabla tienen los mismos tipos que las columnas de la tabla con la que se hizo el join.
+		
+		\item  join es una tabla en la cual las columnas son la union de todas las columnas de tabla y las columnas de la tabla con la que se hizo el join que no coinciden con las de tabla.
+		
+	\item En la lista de cambiosT1 y cambiosT2 estan las modificaciones que ocurrieron en las tablas del join desde que se genero. Por lo tanto (en el ultimo estado para el campo clave en la lista) si el cambio es un borrado se encuentra en la tabla join (ya unidos segun corresponde con los registros de la otra tabla y siempre y cuando existiese coincidencia en el campo clave) y no en la tabla original, y si es una insercion se encuentra en la tabla original y no en el join.
+		
+\end{enumerate}
+
+
+
+
+
+\pagebreak
+
+
+\Rep[estr][e]{
+	(1) \IF vacio?(e.tablas) 
+	THEN 
+	  largo(e.tablaMaxima) = 0 
+	  e.maxModificaciones = 0 
+	ELSE 
+	$(\forall t1:\text{string})$ ( def?(t1, e.tablas) $\land$ ($\forall$ t2:string) def?(t2, e.tablas) $\yluego$ 
+	cantidadDeAccesos(obtener(t1, e.tablas)) $\geq$ cantidadDeAccesos(obtener(t2, e.tablas)) ) 
+   $\impluego$ \\ e.tablaMaxima = t1  $\land$ e.maxModificaciones = cantidadDeAccesos(obtener(t1, e.tablas))
+	FI $\land$ 
+	
+	~
+	
+	(2) $(\forall t:\text{string}) def?(t, e.tablas) \impluego $  \\
+	( $  claves(obtener(t, e.tablas).joinsCon) \subseteq claves(e.tablas) - \lbrace t \rbrace $ $\land$ \\ 
+      $  claves(obtener(t, e.tablas).esJoinDe) \subseteq claves(e.tablas) - \lbrace t \rbrace $ $\land$ \\ 
+	 (3) $  nombre(obtener(t, e.tablas).tabla) = t $ ) $\yluego$ \\ 
+	~
+	
+	(4) $(\forall t1,t2:\text{string}) def?(t1, e.tablas) \yluego def?(t2, obtener(t1, e.tablas).joinsCon) \impluego $ \\
+	def?(t1, obtener(t2, e.tablas).esJoinDe) $\land$ \&(obtener(t2, obtener(t1, e.tablas).joinsCon) = obtener(t1, obtener(t2, e.tablas).esJoinDe) $\yluego$ \\ 
+	~
+
+	$(\forall t1,t2:\text{string}) def?(t1, e.tablas) \yluego def?(t2, obtener(t1, e.tablas).joinsCon) \impluego $ \\
+	JoinValido(e, t1, t2, obtener(t1, e.tablas), obtener(t2, e.tablas), obtener(t2, obtener(t1, e.tablas).joinsCon))
+
+
+}\mbox{}
+
+~
+
+  \tadOperacion{JoinValido}{estr/e,string/n1,string/n2,tabla/t1,tabla/t2,infoJoin/j}{bool}{}
+  \tadAxioma{JoinValido(e,n1,n2,t1,t2,j)}{
+  
+	(5) (j.campo $\in$ claves(t1) $\cap$ claves(t2) $\yluego$  \\
+   tipoCampo(j.campo, t1) = tipoCampo(j.campo,t2)) $\land$ \\
+~   
+   
+	(6) $(\forall tr:\text{tupla(bool,reg:registro)}) tr \in j.cambiosT1 \impluego  campos(tr.reg) = campos(t1) \land mismosTipos(tr.reg, t1) \land$ \\
+~   
+ 
+	(7) $(\forall tr:\text{tupla(bool,reg:registro)}) tr \in j.cambiosT2 \impluego  campos(tr.reg) = campos(t2) \land mismosTipos(tr.reg, t2) \land$ \\   
+~   
+ 
+	(8) (campos(t1) $\cup$ (campos(t2) - campos(t1))) = campos(j.join) $\yluego$ \\
+	    $(\forall c:\text{campo})$ c $\in$ campos(j.join) $\impluego$  \\
+	    (c $\in$ campos(t1) $\yluego$ tipoCampo(c, j.join) = tipoCampo(c, t1))  $\oluego$ 
+	    tipoCampo(c, j.join) = tipoCampo(c, t2) $\land$ \\
+  ~ 
+  
+	(9) $(\forall c:\text{cambio})$ c $\in$ UltimosCambios(j.cambiosT1) $\impluego$ (c.borrado? $\yluego$ c.reg $\in$ registros(j.join)) $\land$  ($\lnot$c.borrado? $\yluego$ c.reg $\in$ registros(t1)) $\yluego$ \\
+	$(\forall c:\text{cambio})$ c $\in$ UltimosCambios(j.cambiosT2) $\impluego$ (c.borrado? $\yluego$ c.reg $\in$ registros(j.join)) $\land$  ($\lnot$c.borrado? $\yluego$ c.reg $\in$ registros(t2))
+	(para cambiosT2, esto es siempre y cuando cambiosT1 no haya modificado ya los campos)
+  }
+
+  ~
+
+
+\tadOperacion{UltimosCambios}{string/clave,secu(cambio)/cambios}{secu(cambio)}{}
+\tadAxioma{UltimosCambios(clave,cambios)}{ \IF  vacia?(cambios) THEN <> ELSE {
+	\IF HayOtroCambio(clave,prim(cambios), fin(cambios)) THEN fin(cambios) ELSE prim(cambios) $\bullet$ UltimosCambios(fin(cambios))	FI
+	} FI
+}
+
+\tadOperacion{HayOtroCambio}{string/clave,cambio/c,secu(cambio)/cambios}{bool}{}
+\tadAxioma{HayOtroCambio(clave, c, cambios)}{ \IF  vacia?(cambios) THEN false ELSE 
+	obtener(clave, c.reg) = obtener(clave, prim(cambios)) $\lor$ HayOtroCambio(clave, c, fin(cambios)) 
+  FI
+}
+
+
+\pagebreak
+
+\subsubsection{Funci\'on de Abastracci\'on}
+
+
+\Abs[estr]{base}[e]{db}{
+	e.tablaMaxima $\igobs$ tablaMaxima(db) $\land$ \\
+
+	claves(e.tablas) = tablas(db) $\yluego$ \\
+
+	$(\forall t1:\text{string})$ def?(t1, e.tablas) $\impluego$ ( \\
+
+	  \hspace*{3mm} obtener(t1, e.tablas).tabla $\igobs$ dameTabla(t1,db) $\yluego$ \\
+
+	  \hspace*{3mm} registros(obtener(t1, e.tablas).tabla) $\igobs$ registros(t1, db) $\land$ \\
+
+	  \hspace*{3mm} cantidadDeAccesos(obtener(t1, e.tablas).tabla) $\igobs$ cantidadDeAccesos(t1, db) $\land$ \\
+	  
+	  \hspace*{3mm} $(\forall r:\text{registro})$ 
+	  coincidencias(r, registros(obtener(t1, e.tablas).tabla)) $\igobs$ buscar(r, t1, db) $\land$ \\
+	  
+
+ 	 \hspace*{3mm} $(\forall t2:\text{string})$ ( \\
+	  
+	 \hspace*{6mm}  (def?(t2, obtener(t1, e.tablas).joinsCon)) $\iff$ hayJoin?(t1, t2, db)) $\yluego$ \\
+	   
+	 \hspace*{6mm}  def?(t2, obtener(t1, e.tablas).joinsCon) $\impluego$ \\
+	   
+	  \hspace*{9mm}   (  obtener(t2, obtener(t1, e.tablas).joinsCon).campo $\igobs$ campoJoin(t1, t2, db) $\land$   \\
+	     
+	 \hspace*{9mm}    vistaJoin(t1, t2, estr) $\igobs$ vistaJoin(t1, t2, db)
+	    )
+	    
+	   ) 
+	 )
+	  
+}
+
+\pagebreak
+
+
+\subsection{Algoritmos}
+
+  
+\begin{algorithm}[H]{\textbf{iNuevaDB}() $\to$ $res$ : estr}
+    	\begin{algorithmic}[1]
+			 \State $res \gets \langle Vacio(), <> \rangle$ \Comment $\Theta(1)$
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(1)$
+    	\end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iAgregarTabla}(\In{t}{tabla},\Inout{db}{estr}) $\to$ $res$ : bool}
+    	\begin{algorithmic}[1]
+    		\State $res \gets \lnot def?(nombre(t), db.tablas) $  	\Comment $\Theta(1)$
+			 \If{$\lnot def?(nombre(t), db.tablas)$}							\Comment $\Theta(1)$
+	   			\State definir(nombre(t), t, db.tablas)           			\Comment $\Theta(1)$
+	   		\EndIf
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(1)$
+			\Statex \underline{Justificacion:} Como el largo del nombre de las tablas es acotado y se utiliza un diccionario que tiene def? y definir, definido en orden del maximo largo de la clave, estos accesos son en O(1), ademas la copia de la tabla, como no tiene registros y tiene un numero acotado de columnas, es O(1)
+    	\end{algorithmic}
+\end{algorithm}
+
+
+
+\begin{algorithm}[H]{\textbf{iInsertarEntrada}(\In{r}{registro},\In{t}{string},\Inout{db}{estr})}
+    	\begin{algorithmic}[1]
+    		\State tabla t1 $\gets$ obtener(t, db.tablas).tabla         \Comment $\Theta(1)$
+    		\State agregarRegistro(r, t1)					\Comment O(L + in) donde in es: O(log(n)) si tiene indice Nat
+    		\Statex											\Comment O(L) si tiene indice string
+    		\Statex											\Comment O(log(n)+L) si tiene ambos u O(1) sino 
+			\State MantenerCambios(obtener(t, db.tablas), r, false)    \Comment O(T * L)
+			
+			 \If{cantidadDeAccesos(t1) $>$  db.maxModificaciones}	  \Comment $\Theta(1)$
+	   			\State db.maxModificaciones $\gets$ cantidadDeAccesos(t1)  \Comment $\Theta(1)$
+	   			\State db.tablaMaxima $\gets$ nombre(t1)  \Comment $\Theta(1)$
+	   		\EndIf
+						
+			\medskip
+			\Statex \underline{Complejidad:} O(T * L + in) donde T es la cantidad de tablas, L el maximo largo de un string en un registro y in = O(log(n)) en promedio si tiene indice en campo nat y O(1) sino, donde n es la cantidad de registros de la tabla. 
+			\Statex \underline{Justificacion:} O(T * L) + O(L + in) = O(T*L + L + in) = O(T*L + in). Las complejidades estan justificadas en la operaciones llamadas. Como in es en peor caso O(L+log(n)), pero O(L) ya esta conciderado fuera de los indices, tomamos que in es O(log(n)) si tiene indice en nat y O(1) sino.
+    	\end{algorithmic}
+\end{algorithm}
+
+
+
+\begin{algorithm}[H]{\textbf{iBorrar}(\In{cr}{registro},\In{t}{string},\Inout{db}{estr})}
+    	\begin{algorithmic}[1]
+    		\State tabla t1 $\gets$ obtener(t, db.tablas).tabla         \Comment $\Theta(1)$
+    		\State borrarRegistro(r, t1)				\Comment in
+			\State MantenerCambios(obtener(t, db.tablas), cr, true)   \Comment O(T * L)
+			
+			 \If{cantidadDeAccesos(t1) $>$ db.maxModificaciones}	  \Comment $\Theta(1)$
+	   			\State db.maxModificaciones $\gets$ cantidadDeAccesos(t1)  \Comment $\Theta(1)$
+	   			\State db.tablaMaxima $\gets$ nombre(t1)  \Comment $\Theta(1)$
+	   		\EndIf
+			
+			\medskip
+			\Statex \underline{Complejidad:} O(T * L + in)  donde T es la cantidad de tablas, L el maximo largo de un string en un registro y in = O(log(n)) en promedio si el criterio tiene indice Nat, O(L) si el criterio tiene indice string y O(L * n) si el criterio no es indice.
+			\Statex \underline{Justificacion:} Suma de complejidades de otras operaciones.
+    	\end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iMantenerCambios}(\Inout{it}{infoTabla},\In{r}{registro},\In{borrado?}{bool})}
+		{\\ $\textbf{Pre}$ $\equiv$  $it_0 = it$ }
+    	\begin{algorithmic}[1]
+    		\State itDicc(string, infoJoin) iter $\gets$ CrearIt( it.joinsCon )			\Comment O(1)
+			 \While{HaySiguiente(iter)}              						\Comment $\Theta(\#(it.joinsCon)) * O(1)$
+				\State infoJoin ij $\gets$ SiguienteSignificado(iter)					\Comment $\Theta(1)$
+				\State AgregarAtras(ij.cambiosT1, $\langle$ borrado?, r $\rangle$)	 \Comment $\Theta(copy(r))$
+			 	\State $Avanzar(iter)$	                     					 	\Comment $\Theta(1)$
+			 \EndWhile
+
+    		\State itDicc(string, puntero(infoJoin)) iter2 $\gets$ CrearIt( it.esJoinDe ) 	\Comment O(1)
+			 \While{HaySiguiente(iter2)}              			\Comment $\Theta(\#(it.esJoinDe)) * O(1)$
+				\State infoJoin ij $\gets$ *SiguienteSignificado(iter2)		\Comment $\Theta(1)$
+				\State AgregarAtras(ij.cambiosT2, $\langle$ borrado?, r $\rangle$)		\Comment $\Theta(copy(r))$
+			 	\State $Avanzar(iter2)$	                     					 	\Comment $\Theta(1)$
+			 \EndWhile
+
+			\medskip
+			\Statex \underline{Complejidad:} O(T * L), donde T es la cantidad de tablas y L el maximo largo de un string en un registro.
+			\Statex \underline{Justificacion:} Cada uno de los ciclos se ejecuta a los sumo T veces y la copia de un registro es a lo sumo O(T) ya que la cantidad de campos es acotada, y los campos Nat se copian en O(1), el costo queda determinado por el string mas largo dentro de un registro. Las operaciones de iteradores estan dadas en O(1) y el agregarAtras de lista es en O(1) tambien. Luego, la suma de dos ciclos O(T*L) = O(2*T*L) $\in$ O(T*L)
+    	\end{algorithmic}
+	   {$\textbf{Post}$ $\equiv$ $(\forall s:\text{string})$  def?(s, $it_0$.joinsCon) $\impluego$ 
+	  \\ obtener(s, it.joinsCon).cambiosT1 $\igobs$  (obtener(s, $it_0$.joinsCon).cambiosT1 $\bullet \langle borrado?, r \rangle$) 
+	   \\ obtener(s, it.esJoinDe)$\rightarrow$ cambiosT2 $\igobs$  (obtener(s, $it_0$.esJoinDe)$\rightarrow$ cambiosT2 $\bullet \langle borrado?, r \rangle$)     }
+\end{algorithm}
+
+
+
+
+\begin{algorithm}[H]{\textbf{iGenerarVistaJoin}(\In{n1}{string},\In{n2}{string},\In{c}{campo},\Inout{db}{estr}) $\to$ $\res$ : itConj(registro) }
+    	\begin{algorithmic}[1]
+    		\State infoTabla inft1 $\gets$ obtener(n1, db.tablas)     \Comment $\Theta(1)$
+    		\State infoTabla inft2 $\gets$ obtener(n2, db.tablas)     \Comment $\Theta(1)$
+    		\State tabla t1 $\gets$ inft1.tabla         \Comment $\Theta(1)$
+    		\State tabla t2 $\gets$ inft2.tabla         \Comment $\Theta(1)$
+    		
+    		\State conj(registro) rt2 $\gets$ registros(t2)         \Comment (Referencia) $\Theta(1)$
+
+    		\State conj(registro) regsJoin $\gets$ combinarRegistros(c, t1, rt2)   \Comment $comp^{1}$
+    		\State itConj(registro) itrj $\gets$ CrearIt(regsJoin)        \Comment $\Theta(1)$
+
+    		\State tabla join $\gets$ NuevaTabla(vacio, $\lbrace$c$\rbrace$, columnasJoin(t1, t2))	\Comment $\Theta$(1)
+    		\State definir(n2,  $\langle$ c, join, Vacio, Vacio $\rangle$, inft1.joinsCon)     \Comment O(1)
+			\State join $\gets$ obtener(n2, inft1.joinsCon).join				\Comment O(1)
+    		\State indexar(c, join)																\Comment como la tabla esta vacia es O(1) 
+    		
+    		\State definir(n1, \&join, inft2.esJoinDe)  \Comment $\Theta(1)$
+    		
+
+			 \While{HaySiguiente(itrj)}              														\Comment $\Theta(n+m)$
+			 	\State agregarRegistro(Siguiente(itrj), join)	\Comment O(L + in) donde in es O(log(n+m)) si el campo de join es Nat y O(1) sino
+			 	\State $Avanzar(itrj)$	                     											 	\Comment $\Theta(1)$
+			 \EndWhile    	    		
+
+			\State regsJoin $\gets$ NULL    		
+			\State res $\gets$ CrearIt(registros(join))							\Comment  O(1)
+    		
+			\medskip
+			\Statex \underline{Complejidad:} Si c no es indice en T1, O(n*m*L), sino O(n+m) * O(L + in) donde in es O(log(n+m)) si c es indice en nat y O(1) es es indice en str.
+			\Statex \underline{Justificacion:} Sean n=\#(registros(t1)),  m=\#(registros(t2)), L=el largo maximo de algun string en un registro de t1 o t2. Entonces  $comp^{1}$ es O(n*m*L) si no hay indices sobre las tablas, O(m * (log(n) + L)) si c es indice Nat en la tabla t1 y O(m * L) si c es indice String en la tabla t1. 
+			\Statex Luego el ciclo de la linea 13, es O(n+m) * O(L + in), donde in es O(log(n+m)) si c es un campo nat, y O(1) sino.
+			\Statex Luego por algebra de ordenes: 
+			\Statex Si c es indice nat en T1, O(m * (log(n) + L)) + O(n+m) * O(L + O(log(n+m)) = O(n+m) * O(L + log(n+m)) 
+			\Statex Si c es indice str en T1, O(m * L) + O(n + m) * O(L) = O(n + m) * O(L)
+			\Statex Si c no es indice,  O(m * n * L) + O(n + m) * O(L) = O(n * m) * O(L)
+			
+    	\end{algorithmic}
+\end{algorithm}
+
+
+
+
+\begin{algorithm}[H]{\textbf{iColumnasJoin}(\In{t1}{tabla},\In{t2}{tabla}) $\to$ $res$ : registro }
+		{\\ $\textbf{Pre}$ $\equiv$  true }
+    	\begin{algorithmic}[1]
+			\State registro res $\gets$ Vacio()								\Comment $\Theta(1)$
+			\State itConj(campo) itc1 $\gets$ campos(t1)				\Comment $\Theta(1)$
+			\State itConj(campo) itc2 $\gets$ campos(t2)				\Comment $\Theta(1)$
+			 \While{HaySiguiente(itc1)}              								\Comment $\Theta(\#(campos(t1))) * \Theta(1)$
+				\If{tipoCampo(t1, Siguiente(itc1))}								\Comment $\Theta(1)$
+					\State definirRapido(res, siguiente(itc1), datoNat(0))					\Comment $\Theta(copy(k)+copy(s))$
+				\Else		
+					\State definirRapido(res, siguiente(itc1), datoString(Vacia()))	    \Comment $\Theta(copy(k)+copy(s))$
+				\EndIf	
+				\State $Avanzar(itc2)$	                     						\Comment $\Theta(1)$			
+			\EndWhile
+
+			 \While{HaySiguiente(itc2)}              								\Comment $\Theta(\#(campos(t2))) * \Theta(1)$
+					\If{$\lnot$ definido?(r, Siguiente(itc2)) }			 	\Comment $\Theta(\#(claves(r)) * equal(k) )$
+						\If{tipoCampo(t2, Siguiente(itc2))}						\Comment $\Theta(1)$
+							\State definirRapido(res, siguiente(itc2), datoNat(0))			  \Comment $\Theta(copy(k)+copy(s))$
+						\Else
+							\State definirRapido(res, siguiente(itc2), datoString(Vacia())) \Comment $\Theta(copy(k)+copy(s))$
+						\EndIf	
+	   				\EndIf			 
+			 	\State $Avanzar(itc2)$	                     											 	\Comment $\Theta(1)$
+			 \EndWhile 
+
+			\medskip
+			\Statex \underline{Complejidad:}  $\Theta$(1)
+			\Statex \underline{Justificacion:} Dado que \#(campos(t1)) y \#(campos(t2)) son la cantidad de columnas que puede tener una registro, y estan acotadas por contexto, y que los nombres de los campos estan acotados y que los significados definidos son un Nat o un string vacio, los ciclos, el definidio? y el definirRapido terminan siendo O(1)
+    	\end{algorithmic}
+	   {$\textbf{Post}$ $\equiv$  campos(res) $\igobs$ campos(t1) $\cup$ (campos(t2) - campos(t1))  $\yluego$
+	   $(\forall c:\text{campo})$  def?(c, res) $\impluego$ \\ \IF def?(c, t1) THEN tipo?(obtener(c,res)) = tipo?(obtener(c, t1)) ELSE tipo?(obtener(c,res)) = tipo?(obtener(c,t2)) FI    }
+\end{algorithm}
+
+
+
+
+\begin{algorithm}[H]{\textbf{iBorrarJoin}(\In{n1}{string},\In{n2}{string},\In{db}{estr}) $\to$ $res$ : campo }
+    	\begin{algorithmic}[1]
+   	  		\State infoTabla inft1 $\gets$ obtener(n1, db.tablas)     \Comment $\Theta(1)$
+    		\State infoTabla inft2 $\gets$ obtener(n2, db.tablas)     \Comment $\Theta(1)$
+			%\State infoJoin ij $\gets$ obtener(n2, inft1.joinsCon)  \Comment $\Theta(1)$%
+			%\State ij $\gets$ NULL \Comment O(1)%
+			\State borrar(t2, inft1.joinsCon)    \Comment $\Theta(1)$
+			\State borrar(t1, inft2.esJoindDe)  \Comment $\Theta(1)$
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta$(1) 
+    	\end{algorithmic}
+\end{algorithm}
+
+
+
+
+\begin{algorithm}[H]{\textbf{iTablas}(\In{db}{estr}) $\to$ $res$ : itConj(string) }
+    	\begin{algorithmic}[1]
+    		\State res $\gets$ CrearIt(db.tablas)    \Comment $\Theta(1)$
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta$(1) 
+    	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iDameTabla}(\In{t}{string},\In{db}{estr}) $\to$ $res$ : tabla }
+    	\begin{algorithmic}[1]
+    		\State res $\gets$ obtener(t, db.tablas).tabla    \Comment $\Theta(1)$
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta$(1) 
+    	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iHayJoin?}(\In{t1}{string},\In{t2}{string},\In{db}{estr}) $\to$ $res$ : bool }
+    	\begin{algorithmic}[1]
+    		\State res $\gets$ def?(t2, obtener(t1, db.tablas).joinsJoin)    \Comment $\Theta(1)$
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta$(1) 
+    	\end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iCampoJoin}(\In{t1}{string},\In{t2}{string},\In{db}{estr}) $\to$ $res$ : campo }
+    	\begin{algorithmic}[1]
+    		\State res $\gets$ obtener(t2, obtener(t1, db.tablas).joinsJoin).campo    \Comment $\Theta(1)$
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta$(1) 
+    	\end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iRegistros}(\In{t}{string},\In{db}{estr}) $\to$ $res$ : registro }
+    	\begin{algorithmic}[1]
+    		\State res $\gets$ registros(obtener(t, db.tablas).tabla)   \Comment $\Theta(1)$
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta$(1) 
+    	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iVistaJoin}(\In{n1}{string},\In{n2}{string},\In{db}{estr}) $\to$ $res$ : itConj(registro) }
+    	\begin{algorithmic}[1]
+    	   	\State infoTabla inft1 $\gets$ obtener(n1, db.tablas)     \Comment $\Theta(1)$
+    	   	\State infoTabla inft2 $\gets$ obtener(n2, db.tablas)     \Comment $\Theta(1)$
+    		\State tabla t1 $\gets$ inft1.tabla         \Comment $\Theta(1)$
+    		\State tabla t2 $\gets$ inft2.tabla         \Comment $\Theta(1)$
+
+			\State infoJoin ij $\gets$ obtener(n2, inft1.joinsCon)     \Comment $\Theta(1)$
+
+			\State actualizarCambios(ij.cambiosT1, c, t2, ij.join) 	\Comment $Comp^{1}$
+			\State actualizarCambios(ij.cambiosT2, c, t1, ij.join) 	\Comment $Comp^{2}$
+			
+    		\State res $\gets$ CrearIt(registros(ij.join))                   \Comment $\Theta(1)$
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta$(R) * O(L + log(n+m)) si c es indice en t1 y t2, $\Theta$(R) * O(L * n * m) sino. Si R=0, $\Theta(1)$
+			\Statex \underline{Justifiacion:}  Sea $R_{1}$ = long(ij.cambiosT1), $R_{2}$ = long(ij.cambiosT2), R=$R_{1}$+$R_{2}$,  m=\#registros(t1),  n=\#registros(t2), L=el largo maximo de algun string en un registro de t1,t2 y ij.join y rj=\#registros(ij.join) (por como se genera el join y se lo actualiza, rj = (n + m))
+		\Statex $Comp^{1}$ es $\Theta$($R_{1}$) * O(L + log(rj)) si c es indice en t2 y $\Theta$($R_{1}$) * O(L * n) sino.
+		\Statex $Comp^{2}$ es $\Theta$($R_{2}$) * O(L + log(rj)) si c es indice en t1 y $\Theta$($R_{2}$) * O(L * m) sino.	
+		\Statex La complejidad del algoritmo es la suma de $Comp^{1}$ y $Comp^{2}$, y por simplicidad separemos en dos casos, en los que c es indice en t1 y t2, y en los que c no es indice en ninguna de las 2.
+		\Statex Luego si c es indice, $\Theta$($R_{1}$) * O(L + log(rj)) + $\Theta$($R_{2}$) * O(L + log(rj)) = $\Theta$(R) * O(L + log(rj))
+		\Statex si c no es indice, $\Theta$($R_{1}$) * O(L * n) + $\Theta$($R_{2}$) * O(L * m) = $\Theta$(R) * O(L * n * m)
+		\Statex Si R=0, $Comp^{1}$ y $Comp^{2}$ son $\Theta$(1), y todo el algoritmo son sumas de $\Theta(1)$
+    	\end{algorithmic}
+\end{algorithm}
+
+
+
+\tadOperacion{ActualizarCambios}{secu(cambio)/cambios,string/c,tabla/t,tabla/join}{tabla}{$(\forall ca:\text{cambio})$ esta?(ca, cambios) $\impluego$ 
+		\\ c $\in$ campos(ca.reg) $\land$ c $\in$ campos(t) $\land$ campos(ca.reg) $\subseteq$ campos(join) $\land$ campos(t) $\subseteq$  campos(join)}
+\tadAxioma{ActualizarCambios(cambios,c,t,join)}{ \IF vacio?(cambios) THEN join ELSE  
+	{\IF prim(cambios).borrado? THEN
+		ActualizarCambios(fin(cambios), c, t, \\ borrarRegistro( dejarSolo(c, prim(cambios).reg), join))
+	ELSE
+		{ \IF vacio?(combinarTodos(c, prim(cambios).reg, registros(t)) THEN 
+			ActualizarCambios(fin(cambios), c, t,  join )
+		ELSE
+			ActualizarCambios(fin(cambios), c, t, agregarRegistro( \\ dameUno(combinarTodos(c, prim(cambios).reg, registros(t), join)))
+		FI }	
+	FI }
+FI 
+}
+
+
+\begin{algorithm}[H]{\textbf{iActualizarCambios}(\In{cambios}{lista(cambio)},\In{c}{string},\In{t}{tabla},\Inout{join}{tabla}) }
+		{\\ $\textbf{Pre}$ $\equiv$  $join = join_0$ }
+    	\begin{algorithmic}[1]
+			\State itLista(cambio) it $\gets$ 	CrearIt(cambios)		\Comment O(1)
+
+			 \While{HaySiguiente(it)}              \Comment R = long(cambios), $\Theta(R)$
+			 	\State cambio cr $\gets$ Siguiente(it) \Comment $\Theta(1)$
+
+					 \If{cr.borrado?}	  \Comment $\Theta(1)$
+					 	\State registro critero $\gets$ Vacio() 			\Comment O(1)
+					 	\State definirRapido(criterio, c, significado(cr.reg, c))  \Comment O(L)
+	   					\State borrarRegistro(criterio, join) \Comment como c es indice en join, O(L + log(\#(regs(join))))
+					\Else 
+						\State conj(registro) conjDeUno $\gets$ Vacio() 		\Comment O(1)
+						\State AgregarRapido(conjDeuno, cr.reg) 			\Comment O(L)
+						\State conj(registro) regsJoin $\gets$ combinarRegistros(c, conjDeUno, t)	\Comment $comp^{1}$
+						
+						\State itConj(registro) itrj $\gets$ CrearIt(regsJoin)        \Comment $\Theta(1)$
+
+						 \If{HaySiguiente(itrj)}          \Comment (a lo sumo hay un registro combinado) $\Theta(1)$
+						 	\State agregarRegistro(Siguiente(itrj), join)	 \Comment O(L + in) donde in es O(\#(regs(join)))) si tiene indice Nat y O(1) sino
+						 \EndIf    	    		
+    		
+	   				\EndIf
+	   				
+				\State EliminarSiguiente(it)			\Comment O(1)
+			 	\State Avanzar(it)                \Comment $\Theta(1)$
+			 \EndWhile
+
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta$(R) * O(L + log(rj)) si c es indice en t y $\Theta$(R) * O(L * m) sino. Si R=0, $\Theta(1)$
+			\Statex \underline{Justificacion:} Sean rj=\#(registros(join)),  m=\#(registros(t)), L=el largo maximo de algun string en un registro de t o join y R = long(cambios).
+			\Statex Entonces  $comp^{1}$ es O(m*L) si no hay indices sobre las tablas, O((log(m) + L)) si c es indice Nat en la tabla t y O(L) si c es indice String en la tabla t.
+			\Statex Luego el ciclo, tiene una complejidad de $\Theta$(R) * O(L + log(rj)) si c es indice en t y $\Theta$(R) * O(L * m) sino.
+			\Statex Si R=0, no se ejecuta el ciclo y todo el algoritmo es $\Theta$(1)
+    	\end{algorithmic}
+	   {$\textbf{Post}$ $\equiv$  join $\igobs$ ActualizarCambios($cambios, c, t, join_0$)  }    	
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iCantidadDeAccesos}(\In{t}{string},\In{db}{estr}) $\to$ $res$ : nat }
+    	\begin{algorithmic}[1]
+    		\State res $\gets$ cantidadDeAccesos(obtener(t, db.tablas).tabla)   \Comment $\Theta(1)$
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta$(1) 
+    	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iTablaMaxima}(\In{db}{estr}) $\to$ $res$ : string }
+    	\begin{algorithmic}[1]
+    		\State res $\gets$ db.tablaMaxima  \Comment $\Theta(1)$
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta$(1) 
+    	\end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iBuscar}(\In{r}{registro},\In{t}{string},\In{db}{estr}) $\to$ $res$ : conj(registro) }
+    	\begin{algorithmic}[1]
+    		\State conj(registro) regs $\gets$ registros(obtener(t, db.tablas).tabla)  \Comment obtiene una referencia $\Theta$(1) 
+    		\State res $\gets$ coincidencias(r, regs)   \Comment $O(log ($\#$registros(t)) + L * \#($reg mismo indice$))$ con indice nat. 
+    		 \Statex 		\Comment  $O(L * \#($reg mismo indice$))$	con indice string. 
+    		 \Statex		\Comment  $O(\#registros(t) * L)$	sin indices.
+
+			\medskip
+			\Statex \underline{Complejidad:} 
+			\Statex  O(Log(n) + L) en promedio si hay indice Nat.
+			\Statex  O(L) en promedio si hay indice string.
+			\Statex  $O(\#registros(t) * L)$	sin indices.
+			\Statex \underline{Justificacion:} La complejidad esta dada por el llamado a la funcion coincidencias, se desetima para el calculo en promedio la cantidad de registros donde se repite un registro para un mismo indice, ya que por contexto de uso los nats se insertan con distribucion uniforme.
+			
+    	\end{algorithmic}
+\end{algorithm}

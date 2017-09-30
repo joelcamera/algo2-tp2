@@ -1,0 +1,286 @@
+
+\section{Dato}
+
+El módulo Dato provee una forma de encapsular los distintos tipos de datos soportados en los registros. 
+El costo temporal de crear un dato de tipo string esta dado por la complejidad de copiar su contenido y dado que es un vector de chars, esta dado por la longitud del string muliplicado por el tiempo de copia de un char.
+
+\subsection{Interfaz}
+ 
+  \textbf{parámetros formales}\hangindent=2\parindent\\
+  \parbox{1.7cm}{\textbf{géneros}} string\\
+  \parbox[t]{1.7cm}{\textbf{función}}\parbox[t]{\textwidth-2\parindent-1.7cm}{%
+    \InterfazFuncion{Copiar}{\In{s}{string}}{string}
+    {$res \igobs s$}
+    [$\Theta(copiar(s))$]
+    [función de copia de strings]
+  }
+
+
+
+\textbf{se explica con} \tadNombre{Dato} 
+
+\textbf{géneros}: dato
+
+
+\subsubsection{Operaciones básicas de Dato}
+
+
+\InterfazFuncion{datoString}{\In{s}{string}}{dato}
+[true]
+{$res \igobs$ datoString(s)}
+[$\Theta(copiar(s))$]
+[Crea un dato con tipo string]
+[]
+
+~
+
+\InterfazFuncion{datoNat}{\In{n}{nat}}{dato}
+[true]
+{$res \igobs$ datoNat(s)}
+[$\Theta(1)$]
+[Crea un dato con tipo nat]
+[]
+
+~
+
+\InterfazFuncion{Nat?}{\In{d}{dato}}{bool}
+[true]
+{$res \igobs$ Nat?(d)}
+[$\Theta(1)$]
+[Devuelve true solo si el tipo es nat]
+[]
+
+~
+
+\InterfazFuncion{valorNat}{\In{d}{dato}}{nat}
+[Nat?(d) $\igobs$ true ]
+{$res \igobs$ valorNat(d)}
+[$\Theta(1)$]
+[Devuelve el valor nat del dato]
+[]
+
+~
+
+\InterfazFuncion{valorStr}{\In{d}{dato}}{string}
+[Nat?(d) $\igobs$ false ]
+{alias($res \igobs$ valorStr(d))}
+[$\Theta(1)$]
+[Devuelve una referencia al valor string del dato]
+[res es un alias y no es modificable]
+
+~
+
+\InterfazFuncion{mismoTipo?}{\In{d1}{dato},\In{d2}{dato}}{bool}
+[true]
+{$res \igobs$ mismoTipo?(d1,d2) }
+[$\Theta(1)$]
+[Devuelve true si el tipo de dato de d1 y d2 coinciden]
+[]
+
+~
+
+\InterfazFuncion{String?}{\In{d}{dato}}{bool}
+[true]
+{$res \igobs$ $\lnot$ Nat?(d)}
+[$\Theta(1)$]
+[Devuelve true solo si el tipo es string]
+[]
+
+~
+
+% \InterfazFuncion{min}{\In{ds}{conj(dato)}}{bool}
+% [$\lnot$ vacio?(ds) $\land$  $(\forall d1,d2:\text{dato}) (d1 \in ds \land d2 \in ds) \impluego mismoTipo?(d1,d2)$]
+% {alias($res \igobs$ min(ds)) }
+% [$\Theta\left(\displaystyle\sum_{a' \in c} a \leq a'  \right)$]
+% [Devuelve una referencia al minimo elemento del conjunto. ]
+% []
+
+% ~
+
+
+% \InterfazFuncion{max}{\In{ds}{conj(dato)}}{bool}
+% [$\lnot$ vacio?(ds) $\land$  $(\forall d1,d2:\text{dato}) (d1 \in ds \land d2 \in ds) \impluego mismoTipo?(d1,d2)$ ]
+% {alias($res \igobs$ max(ds)) }
+% [$\Theta\left(\displaystyle\sum_{a' \in c} a \leq a'  \right)$]
+% [Devuelve una referencia al minimo elemento del conjunto. ]
+% []
+
+% ~
+
+\InterfazFuncion{$\bullet = \bullet$}{\In{d1}{dato},\In{d2}{dato}}{bool}
+[true]
+{$res \igobs d1 = d2$}
+[$\Theta(1)$ si Nat?(d1) $\land$ Nat?(d2), si no $\Theta(\min\{\text{long}(valorStr(d1)), \text{long}(valorStr(d2))\}$. ]
+[Devuelve true si d1 es igual a d2 ]
+[]
+
+~ 
+
+\subsubsection{Representación de Dato}
+
+\begin{Estructura}{Dato}[estr]
+	\begin{Tupla}[estr]
+		\tupItem{esNat?}{bool}
+		\tupItem{\\ valorNat}{nat}
+		\tupItem{\\ valorStr}{string}
+	\end{Tupla}
+\end{Estructura}
+
+
+
+\subsubsection{Invariante de Representación}
+
+\begin{enumerate}
+	%1
+	\item Si e.esNat? es verdadero entonces e.valorStr es vacio.
+	%2
+	\item Si e.esNat? es falso entonces e.valorNat es cero.
+
+\end{enumerate}
+
+\Rep[estr][e]{
+	\\\textbf{(1)}
+	(e.esNat? $\Rightarrow$ e.valorStr $= <>$)
+	\\
+	$\lor$
+	\\\textbf{(2)}
+	($\neg$e.esNat? $\Rightarrow$ e.valorNat $= 0$)
+}\mbox{}
+
+
+\subsubsection{Función de Abastracción}
+
+\Abs[estr]{dato}[e]{d}{
+	e.esNat? = tipo?(d) $\yluego$ \\
+	\IF tipo?(d) THEN e.valorNat = valorNat(d) ELSE e.valorStr = valorStr(d) FI
+}
+
+
+\subsection{Algoritmos}
+
+  
+\begin{algorithm}[H]{\textbf{iDatoString}(\In{s}{string}) $\to$ $res$ : estr}
+    	\begin{algorithmic}[1]
+			 \State $res \gets \langle false, 0, s \rangle$ \Comment $\Theta(copiar(s))$
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(copiar(s))$
+    	\end{algorithmic}
+\end{algorithm}
+
+
+  
+\begin{algorithm}[H]{\textbf{iDatoNat}(\In{n}{nat}) $\to$ $res$ : estr}
+    	\begin{algorithmic}[1]
+			 \State $res \gets \langle true, n, Vacia() \rangle$ \Comment $\Theta(1)$
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(1)$
+    	\end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iNat?}(\In{d}{estr}) $\to$ $res$ : bool}
+    	\begin{algorithmic}[1]
+			 \State $res \gets d.esNat? $ \Comment $\Theta(1)$
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(1)$
+    	\end{algorithmic}
+\end{algorithm}
+
+  
+\begin{algorithm}[H]{\textbf{iValorNat}(\In{d}{estr}) $\to$ $res$ : nat}
+    	\begin{algorithmic}[1]
+			 \State $res \gets d.valorNat $ \Comment $\Theta(1)$
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(1)$
+    	\end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iValorStr}(\In{d}{estr}) $\to$ $res$ : string}
+    	\begin{algorithmic}[1]
+			 \State $res \gets d.valorStr $ \Comment $\Theta(1)$
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(1)$
+			\Statex \underline{Justificación:} Se devuelve una referencia al contenido del valor sin realizar copia.
+    	\end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iString?}(\In{d}{estr}) $\to$ $res$ : bool}
+    	\begin{algorithmic}[1]
+			 \State $res \gets \lnot d.esNat? $ \Comment $\Theta(1)$
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(1)$
+    	\end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iMismoTipo?}(\In{d1}{estr},\In{d1}{estr}) $\to$ $res$ : bool}
+    	\begin{algorithmic}[1]
+			 \State $res \gets d1.esNat? = d2.esNat?  $ \Comment $\Theta(1)$
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(1)$
+    	\end{algorithmic}
+\end{algorithm}
+
+
+% \begin{algorithm}[H]{\textbf{iMin}(\In{ds}{conj(estr)}) $\to$ $res$ : estr}
+%     	\begin{algorithmic}[1]
+% 			 \State itConj(estr) iter $\gets$ crearIt(ds)    \Comment $\Theta(1)$
+% 			 \State estr min $\gets$ siguiente(iter)          \Comment $\Theta(1)$
+
+% 			 \While{haySiguiente(iter)}              		\Comment $\Theta(i)$
+% 			 	\State $Avanzar(iter)$	                      	\Comment $\Theta(1)$
+%    			    \State estr actual $\gets$ siguiente(iter)     \Comment $\Theta(1)$
+% 					 \If{actual $\leq$ min}	 							\Comment $\Theta(*)$
+% 			   			\State min $\gets$ actual                    \Comment $\Theta(1)$
+% 		    		\EndIf
+% 			 \EndWhile
+% 			 \State res $\gets$ min          \Comment $\Theta(1)$
+		
+
+% 			\medskip
+% 			\Statex \underline{Complejidad:} $\Theta(*) suma de comparaciones$
+%     	\end{algorithmic}
+% \end{algorithm}
+
+
+% \begin{algorithm}[H]{\textbf{iMax}(\In{ds}{conj(estr)}) $\to$ $res$ : estr}
+%     	\begin{algorithmic}[1]
+% 			 \State itConj(estr) iter $\gets$ crearIt(ds)    \Comment $\Theta(1)$
+% 			 \State estr max $\gets$ siguiente(iter)          \Comment $\Theta(1)$
+
+% 			 \While{haySiguiente(iter)}              		\Comment $\Theta(i)$
+% 			 	\State $Avanzar(iter)$	                      	\Comment $\Theta(1)$
+%    			    \State estr actual $\gets$ siguiente(iter)     \Comment $\Theta(1)$
+% 					 \If{max $\leq$ actual}	 							\Comment $\Theta(*)$
+% 			   			\State max $\gets$ actual                    \Comment $\Theta(1)$
+% 		    		\EndIf
+% 			 \EndWhile
+% 			 \State res $\gets$ max          \Comment $\Theta(1)$
+		
+
+% 			\medskip
+% 			\Statex \underline{Complejidad:} $\Theta(*) suma de comparaciones$
+%     	\end{algorithmic}
+% \end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{$\bullet = \bullet$}(\In{d1}{estr}, \In{d2}{estr}) $\to$ $res$ : bool}
+    	\begin{algorithmic}[1]
+
+			 \If {Nat?($d1$) $=$ Nat?($d2$)} \Comment $\Theta(1)$
+			 	\State $res \gets d1.valorNat = d2.valorNat$ \Comment $\Theta(1)$
+
+			\ElsIf {String?($d1$) $=$ String?($d2$)} \Comment $\Theta(1)$
+				\State $res \gets d1.valorStr = d2.valorStr$ \Comment $\Theta(\min\{\text{long}(valorStr(d1)), \text{long}(valorStr(d2))\}$
+
+			\Else
+				\State $res \gets false$ \Comment $\Theta(1)$
+
+			\EndIf
+
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(1)$ si Nat?(d1), si no $\Theta(\min\{\text{long}(valorStr(d1)), \text{long}(valorStr(d2))\}$
+    	\end{algorithmic}
+\end{algorithm}

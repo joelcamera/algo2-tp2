@@ -1,0 +1,249 @@
+\section{Módulo Registro}
+
+\subsection{Interfaz}
+
+\textbf{MÓDULO Registro extiende a} \tadNombre{Módulo Diccionario Lineal(Campo, Dato)}.
+
+\textbf{género}: registro
+
+
+~
+
+
+\subsubsection{Operaciones básicas de Registro}
+
+\begin{Interfaz}
+
+\InterfazFuncion{Campos}{\In{r}{registro}}{Conj(Campo)}
+[true]
+{$res \igobs$ Campos($r$)}
+[$\Theta(1)$]
+[Devuelve el conjunto de campos del registro.]
+[Devuelve por copia. Como sabemos que por el contexto de uso que la cantidad de campos es acotada la complejidad es $\Theta(1)$.]
+
+% ~
+
+% \InterfazFuncion{Borrar?}{\In{criterio}{registo}, \In{reg}{registro} }{bool}
+% [\#Campos($criterio$) $\equiv 1$]
+% {$res \igobs$ Borrar?($criterio$, $reg$)}
+% [$\Theta(L)$]
+% [Devuelve true si coinciden todos los campos de los registros $criterio$ y $reg$.]
+% []
+
+~
+
+\InterfazFuncion{CoincidenTodos}{\In{r1}{registro}, \In{cc}{conj(campo)}, \In{r2}{registro} }{bool}
+[$cc \subseteq$ campos($r1$) $\cap$ campos($r2$)]
+{$res \igobs$ CoincidenTodos($r1$, $cc$, $r2$)}
+[$\Theta(L)$]
+[Devuelve true si tienen todos los datos iguales ambos registros.]
+[]
+
+% ~
+
+% \InterfazFuncion{CoincideAlguno}{\In{r1}{registro}, \In{cc}{conj(campo)}, \In{r2}{registro} }{bool}
+% [$cc \subseteq$ Campos($r1$) $\cap$ Campos($r2$)]
+% {$res \igobs$ CoincideAlguno($r1$, $cc$, $r2$)}
+% [$\Theta(L)$]
+% [Devuelve true si tienen al menos un dato igual ambos registros.]
+% []
+
+~
+
+\InterfazFuncion{AgregarCampos}{\Inout{r1}{registro}, \In{r2}{registro}}{}
+[$r1 \igobs r1_o$]
+{$r1 \igobs$ AgregarCampos($r1_o$, $r2$)}
+[$\Theta(L)$]
+[Agrega los campos del registro $r2$ a $r1$ que $r1$ no posee.]
+[]
+
+
+\end{Interfaz}
+
+~
+
+\pagebreak
+
+%=============================================
+
+%EXTIENDE AL DICCIONARIO, NO SE NECESITA UNA REPRESENTACION NI REP/ABS, SON LOS DEL DICCIONARIO.
+
+
+% \subsubsection{Representación de Registro}
+
+% \begin{Estructura}{Registro}[estr]
+
+% 	\begin{Tupla}[estr]
+% 		\tupItem{registro}{diccLineal(campo, dato)}
+% 	\end{Tupla}
+
+% \end{Estructura}
+
+
+
+% \subsubsection{Invariante de Representación}
+
+
+% \Rep[estr][e]{
+
+% }\mbox{}
+
+
+% \subsubsection{Función de Abastracción}
+
+% \Abs[estr]{registro}[e]{r}{
+% 	($\forall c$: Nat) def?($c$,$r$) $\igobs$ Definido?($c$,$e$.registro) $\yluego$ (def?($c$,$r$) $\impluego$ obtener($c$,$r$) $\igobs$ Significado($c$, $r$.registro))
+% }
+
+
+\subsection{Algoritmos}
+
+
+\begin{algorithm}[H]{{\textbf{iCampos}(\In{r}{dic})} $\to$ $res$ : $Conj(Campo)$}
+	{\\ $\textbf{Pre}$ $\equiv$ True}
+    	\begin{algorithmic}[1]
+
+    		\State $itDicc(Campo, Dato): it \gets$ CrearIt$(r)$ \Comment $\Theta(1)$
+			\State $Conj(Campo): res \gets$ Vacio$()$ \Comment $\Theta(1)$
+
+			\While{HaySiguiente$(it)$} \Comment $\Theta(1)$
+
+				\State AgregarRapido$(res,$ SiguienteClave$(it) )$ \Comment $\Theta(1)$
+
+				\State Avanzar$(it)$ \Comment $\Theta(1)$
+			
+			\EndWhile \Comment $\Theta(1)$ Porque la cantidad de campos es acotada.
+
+			\State $res \gets conj$ \Comment $\Theta(1)$ Devuelve por copia.
+
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(1)$
+			\Statex \underline{Justificación:} Como la cantidad de campos es acotada en el contexto de uso de registro, iterarlos tiene como complejidad $\Theta(1)$ y devolverlo también tiene como complejidad $\Theta(1)$.
+    	\end{algorithmic}
+	{$\textbf{Post}$ $\equiv$ $res \igobs$ Campos$(r)$}
+\end{algorithm}
+
+
+% \begin{algorithm}[H]{{\textbf{iBorrar?}(\In{criterio}{dic}, \In{r}{dic})} $\to$ $res$ : $bool$}
+% 	{\\ $\textbf{Pre}$ \#Campos($criterio$) $\equiv 1$}
+%     	\begin{algorithmic}[1]	
+
+%     		\State $res \gets$ CoincidenTodos($criterio$, Campos($criterio$), $r$) \Comment $\Theta(L)$
+		
+% 			\medskip
+% 			\Statex \underline{Complejidad:} $\Theta(L)$
+% 			\Statex \underline{Justificación:} Como se por requiere que \#Campos($criterio$) $\equiv 1$ y la complejidad de Campos y de CoincidenTodos es de $\Theta(L)$, la complejidad de esta función es de $\Theta(L)$.
+%     	\end{algorithmic}
+% 	{$\textbf{Post}$ $\equiv$ $res \igobs$ Borrar?($criterio$, $r$)}
+% \end{algorithm}
+
+
+\begin{algorithm}[H]{{\textbf{iCoincidenTodos}(\In{r1}{dic}, \In{cc}{Conj(Campo)}, \In{r2}{dic})} $\to$ $res$ : $bool$}
+	{\\ $\textbf{Pre}$ $cc \subseteq$ Campos($r1$) $\cap$ Campos($r2$)}
+    	\begin{algorithmic}[1]
+
+    		\State $itConj(Campo): itC \gets$ CrearIt($cc$) \Comment $\Theta(1)$
+    		\State $res \gets true$ \Comment $\Theta(1)$
+
+    		\While{HaySiguiente($itC$) $\land$ $res$} \Comment $\Theta(1)$
+    			
+    			\State $res \gets$ Significado($r1$, Siguiente($itC$)) == Significado($r2$, Siguiente($itC$)) \Comment $\Theta(L)$
+    			
+    			\State $Avanzar(itC)$ \Comment $\Theta(1)$
+    		
+    		\EndWhile 
+    		\Comment $\Theta(\#(cc)*L)$
+
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(\#(cc)*L)$ = $\Theta(L)$
+			\Statex \underline{Justificación:} Itera sobre el conjunto de campos $cc$ y compara los significados de ese campo en ambos registros. Como por requiere se que $cc \subseteq$ Campos($r1$) $\cap$ Campos($r2$) y se que por contexto de uso que la cantidad de campos está acotada (por ende, Significado tiene complejidad $\Theta(1)$), entonces iterar sobre el conjunto cuesta $\Theta(1)$. Los significados del registro no están acotados, esto hace que la comparación entre ellos tengan complejidad $\Theta(L)$ donde $L$ es la máxima longitud de un valor STRING de un registro en la tabla pasada por parámetro.
+    	\end{algorithmic}
+	{$\textbf{Post}$ $\equiv$ $res \igobs$ CoincidenTodos($r1$, $cc$, $r2$)}
+\end{algorithm}
+
+
+% \begin{algorithm}[H]{{\textbf{iCoincideAlguno}(\In{r1}{dic}, \In{cc}{ItConj(Campo)}, \In{r2}{dic})} $\to$ $res$ : $bool$}
+% 	{\\ $\textbf{Pre}$ $cc \subseteq$ Campos($r1$) $\cap$ Campos($r2$)}
+%     	\begin{algorithmic}[1]
+
+%     		\State $itConj(Campo): itC \gets$ CrearIt($cc$) \Comment $\Theta(1)$
+%     		\State $res \gets false$ \Comment $\Theta(1)$
+
+%     		\While{HaySiguiente($itC$) $\land$ $!res$} \Comment $\Theta(1)$
+
+%     			\State $res \gets$  Significado($r1$, Siguiente($itC$)) == Significado($r2$, Siguiente($itC$)) \Comment $\Theta(L)$
+%     			\State Avanzar($itC$) \Comment $\Theta(1)$
+    		
+%     		\EndWhile 
+%     		\Comment $\Theta(\#(cc)*L)$
+
+% 			\medskip
+% 			\Statex \underline{Complejidad:} $\Theta(\#(cc)*L)$ = $\Theta(L)$
+% 			\Statex \underline{Justificación:} Itera sobre el conjunto de campos $cc$ y compara los significados de ese campo en ambos registros. Como por requiere se que $cc \subseteq$ Campos($r1$) $\cap$ Campos($r2$) y se que por contexto de uso que la cantidad de campos está acotada (por ende, Significado tiene complejidad $\Theta(1)$), entonces iterar sobre el conjunto cuesta $\Theta(1)$. Los significados del registro no están acotados, esto hace que la comparación entre ellos tengan complejidad $\Theta(L)$ donde $L$ es la máxima longitud de un valor STRING de un registro en la tabla pasada por parámetro.
+%     	\end{algorithmic}
+% 	{$\textbf{Post}$ $\equiv$ $res \igobs$ CoincideAlguno($r1$, $cc$, $r2$)}
+% \end{algorithm}
+
+
+\begin{algorithm}[H]{{\textbf{iAgregarCampos}(\Inout{r1}{dic}, \In{r2}{dic})}}
+	{\\ $\textbf{Pre}$ true}
+    	\begin{algorithmic}[1]
+
+    		\State $Conj(campo): cr1 \gets$ Campos($r1$) \Comment $\Theta(1)$
+    		\State $Conj(campo): cr2 \gets$ Campos($r2$) \Comment $\Theta(1)$
+    		\\
+
+			\State $\backslash\backslash$ RestaCampos le quita a $cr2$ los campos que estan en $cr1$
+			\State $\backslash\backslash$ al final quedaria $cr2 = cr2_o - (cr2_o \cap cr1)$
+
+    		\State RestaCampos($cr2$, $cr1$) \Comment $\Theta(\#(cr1) * \#(cr2)) = \Theta(1)$
+    		\\
+
+    		\State $itConj(Campo): itC \gets$ CrearIt($cr2$) \Comment $\Theta(1)$
+    	
+    		\While{HaySiguiente($itC$)} \Comment $\Theta(1)$
+
+    			\\
+    			\State $\backslash\backslash$ Agrego a $r1$ los registros de $r2$ que no están en $r1$.
+    			\State $\backslash\backslash$ Para esto utilzo el conjunto $cr2$ que tiene los campos que no tienen en común $r1$ y $r2$.
+    			\State $\backslash\backslash$ Ya que quite los registros en común cuando utilizamos la función RestaCampos.
+    			\State $\backslash\backslash$ Cumple el pre de DefinirRapido, estoy agregando claves que no están definidas.
+    			\State DefinirRapido($r1$, Siguiente($itC$), Significado($r2$, Siguiente($itC$))) \Comment $\Theta(copy(s))$
+    			\\
+    			
+    			\State Avanzar($itC$) \Comment $\Theta(1)$
+    			\\
+    		\EndWhile 
+    		\Comment $\Theta(\#(cr2)*copy(s)) = \Theta(copy(s))$
+		
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(copy(s))$ = $\Theta(L)$
+			\Statex \underline{Justificación:} Se crean dos conjuntos de campos que cuestan $\Theta(1)$ cada uno, dado que la cantidad de campos de cada registro está acotada por el contexto de uso. Luego se utiliza la función RestaCampos que filtra los campos de $r1$ que están en $r2$. La complejidad de esta función es $\Theta(\#(cr1) * \#(cr2))$ pero como los conjuntos de campos son los campos de los registros $r1$ y $r2$ y estos, por el contexto de uso, tienen una cantidad de campos acotada sumado a que los campos son STRINGS acotados, esto hace que la funcion RestaCampos termine teniendo una complejidad de $\Theta(1)$. Despues se itera el conjunto $cr2$ que posee los campos que poseía menos la intersección de este conjunto con $cr1$, y como la cantidad del conjunto está acotada, iterar este conjunto tiene como complejidad $\Theta(1)$. Dentro del ciclo se utiliza la función DefinirRapido que define en un diccionario en $\Theta(copy(s))$ = $\Theta(L)$ ya que los significados no están acotados, y cumple con el requiere de la función ya que los elementos que se están agregando son los que no están definidos en $r1$ de $r2$. Y, también, utiliza la función Significado del registro $r2$ que, como la cantidad de campos es acotada, tiene como complejidad $\Theta(1)$. Por lo tanto, la función termina teniendo como complejidad $\Theta(L)$ que surge de generar la copia del significado al definir en el registro.
+
+    	\end{algorithmic}
+	{$\textbf{Post}$ $\equiv$ $res \igobs$ AgregarCampos($r1$, $r2$)}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{{\textbf{RestaCampos}(\Inout{cr2}{Conj(Campo)}, \In{cr1}{Conj(Campo)})}}
+	{\\ $\textbf{Pre}$ $cr2 = cr2_o$}
+    	\begin{algorithmic}[1]
+
+    		\State $itConj(campo): itCr2 \gets$ CrearIt($cr2$) \Comment $\Theta(1)$
+
+    		\While{HaySiguiente($itCr2$)} \Comment $\Theta(1)$
+
+    			\If {Pertenece?($cr1$, Siguiente($itCr2$))} \Comment $\Theta(\#(cr1))$
+    				\State EliminarSiguiente($itCr2$) \Comment $\Theta(1)$
+    			\Else
+    				\State Avanzar($itCr2$) \Comment $\Theta(1)$
+    			\EndIf
+
+    		\EndWhile \Comment $\Theta(\#(cr1) * \#(cr2))$
+		
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(\#(cr1) * \#(cr2))$
+			\Statex \underline{Justificación:} Recorre todos los campos del conjunto $cr2$ revisando si pertenecen al conjunto $cr1$. La funcion Pertence? de conjunto hace una comparacion de todos los elementos revisando si está el pasado como parametro, esto hace que la complejidad sea $\Theta\left(\displaystyle\sum_{a' \in c}equal(a,a')\right)$, pero como los campos tienen una longitud acotada de letras la complejidad de cada comparación es $\Theta(1)$ y la complejidad total del pertenece termina siendo $\Theta(\#cr1)$ porque en peor caso debe recorrer todos los elementos.
+    	\end{algorithmic}
+	{$\textbf{Post}$ $\equiv$ $cr2 = cr2_o - cr1$)}
+\end{algorithm}

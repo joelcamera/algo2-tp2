@@ -1,0 +1,963 @@
+\section{Módulo Diccionario Natural($\alpha$)}
+
+\subsection{Interfaz}
+
+\textbf{se explica con}: \tadNombre{Diccionario(Nat, $\alpha$)}.
+
+\textbf{géneros}: \TipoVariable{diccNat($\alpha$)}.
+
+
+~
+
+
+\subsubsection{Operaciones básicas de Diccionario Natural($\alpha$)}
+
+\begin{Interfaz}
+
+\InterfazFuncion{CrearDiccionario}{}{diccNat($\alpha$)}
+[true]
+{$res \igobs$ vacio()}
+[O(1)]
+[Crea un diccionario vacío.]
+[]
+
+~
+
+\InterfazFuncion{Definir}{\In{c}{Nat}, \In{s}{$\alpha$}, \Inout{d}{diccNat($\alpha$)} }{}
+[$d \igobs d_o$]
+{$d \igobs$ Definir($c$, $s$, $d_o$)}
+[Caso prom: $O(log(n) + copy(s))$ | Peor Caso $O(n + copy(s))$]
+[Define la clave $c$ con el significado $s$. Si la clave esta definida deja el significado $s$ y borra el anterior.]
+[El elemento $s$ se agrega por copia.]
+
+~
+
+\InterfazFuncion{Definido?}{\In{c}{Nat}, \In{d}{diccNat($\alpha$)} }{bool}
+[true]
+{$res \igobs$ Definido?($c$, $d$)}
+[Caso prom: $O(log(n))$ | Peor Caso $O(n)$]
+[Devuelve true si la clave está definida en el diccionario y false en caso contrario.]
+[]
+
+~
+
+\InterfazFuncion{Obtener}{\In{c}{Nat}, \In{d}{diccNat($\alpha$)} }{$\alpha$}
+[Definido?($c$, $d$)]
+{$res \igobs$ Obtener($c$,$d$)}
+[Caso prom: $O(log(n))$ | Peor Caso $O(n)$]
+[Devuelve el significado correspondiente a la clave $c$.]
+[Devuelve el significado almacenado en el diccionario, por lo que $res$ es modificable si y sólo si $d$ lo es.]
+
+~
+
+\InterfazFuncion{Borrar}{\In{c}{clave}, \Inout{d}{diccNat($\alpha$)} }{}
+[$d \igobs d_o \land$ Definido?($c$, $d$)]
+{$d \igobs$ Borrar($c$, $d_o$)}
+[Caso prom: $O(log(n))$ | Peor Caso $O(n)$]
+[Borra la clave $c$ y su significado del diccionario.]
+[]
+
+~
+
+\InterfazFuncion{EsVacio?}{\In{d}{diccNat($\alpha$)}}{bool}
+[true]
+{$res \igobs$ EsVacio?($d$)}
+[O(1)]
+[Devuelve true si el diccionario esta vacío.]
+[]
+
+~
+
+\InterfazFuncion{\#Claves}{\In{d}{diccNat($\alpha$)} }{nat}
+[true]
+{$res \igobs$ \#Claves($d$)}
+[O(1)]
+[Devuelve la cantidad de claves del diccionario.]
+[]
+
+~
+
+\InterfazFuncion{ClaveMinima}{\In{d}{diccNat($\alpha$)} }{nat}
+[$\neg EsVacio(d)$]
+{$res \in$ Claves($d$) $\land$ EsClaveMinima($res$, Claves($d$))}
+[O(1)]
+[Devuelve la clave mas chica del diccionario.]
+[]
+
+~
+
+\InterfazFuncion{ClaveMaxima}{\In{d}{diccNat($\alpha$)} }{nat}
+[$\neg EsVacio(d)$]
+{$res \in$ Claves($d$) $\land$ EsClaveMaxima($res$, Claves($d$))}
+[O(1)]
+[Devuelve la clave mas alta del diccionario.]
+[]
+
+\tadOperacion{EsClaveMaxima}{n,conj(nat)}{bool}{}
+\tadOperacion{EsClaveMinima}{n,conj(nat)}{bool}{}
+
+\tadAxioma{EsClaveMaxima(n,c)}{ \IF $\emptyset$(c) THEN true
+	ELSE n $\geq$ DameUno(c) $\land$ EsClaveMaxima(n,SinUno(c))
+	FI
+}
+
+\tadAxioma{EsClaveMinima(n,c)}{ \IF $\emptyset$(c) THEN true
+	ELSE n $\leq$ DameUno(c) $\land$ EsClaveMinima(n,SinUno(c))
+	FI
+}
+
+
+\end{Interfaz}
+
+
+
+
+%===============================================================
+\subsubsection{Representación de Diccionario Natural($\alpha$)}
+
+\begin{Estructura}{diccNat($\alpha$)}[estr]
+	\begin{Tupla}[estr]
+		\tupItem{raiz}{puntero(Nodo)}%
+		\tupItem{\\ masChico}{puntero(Nodo)}%
+		\tupItem{\\ masGrande}{puntero(Nodo)}%
+		\tupItem{\\ cantclaves}{nat}%
+	\end{Tupla}
+
+	\begin{Tupla}[Nodo]
+		\tupItem{clave}{nat}%
+		\tupItem{\\ sign}{$\alpha$}%
+		\tupItem{\\ padre}{puntero(Nodo)}%
+		\tupItem{\\ hizq}{puntero(Nodo)}%
+		\tupItem{\\ hder}{puntero(Nodo)}%
+	\end{Tupla}	
+
+\end{Estructura}
+
+~
+
+
+\subsubsection{Invariante de Representación}
+
+
+\begin{enumerate}
+	%1
+	\item Si e.raiz apunta a null entonces e.cantclaves es igual a cero y e.masChico y e.masGrande apuntan a null, o e.raiz no apunta a null entonces e.cantclaves es distinto de cero y e.masChico y e.masGrande no apuntan a null.
+	%2
+	\item e.cantclaves es la cantidad de nodos del arbol.
+	%3
+	\item Para cada nodo, si tiene hijos, hizq tiene una clave mas chica que el nodo y hder tiene una clave mas grande que el nodo.
+	%4
+	\item Si e.cantclaves es igual a uno, e.raiz, e.masChico y e.masGrande apuntan al mismo nodo, si es mayor que cero e.masChico es el nodo de mas a la izquierda de e.raiz y e.masGrande es el nodo de mas a la derecha de e.raiz.
+
+\end{enumerate}
+
+
+\Rep[estr][e]{
+	\\\textbf{(1)}
+	e.raiz $=$ NULL $\Leftrightarrow$ (e.cantclaves $= 0$ $\land$ e.masChico $=$ NULL $\land$ e.masGrande $=$ NULL)
+	\\
+	$\land$ 
+	\\
+	e.raiz $\neq$ NULL $\Leftrightarrow$ (e.cantclaves $\neq$ 0 $\land$ e.masChico $\neq$ NULL $\land$ e.masGrande $\neq$ NULL)
+	\\
+	$\land$
+	\\\textbf{(2)}
+	e.cantclaves $=$ tamaño(e.raiz)
+	\\
+	$\land$
+	\\\textbf{(3)}
+	invarianteABB(e.raiz)
+	\\
+	$\land$
+	\\\textbf{(4)}
+	e.cantclaves $= 1$ $\Leftrightarrow$ e.raiz = e.masChico $\land$ e.raiz = e.masGrande
+	\\
+	$\land$
+	\\
+	e.cantclaves $> 1$ $\Leftrightarrow$ e.masChico $=$ nodoMasIzq(e.raiz) $\land$ e.masGrande $=$ nodoMasDer(e.raiz)
+}\mbox{}
+
+~
+
+\tadOperacion{tamaño}{puntero(Nodo)}{nat}{}
+\tadOperacion{invarianteABB}{puntero(Nodo)}{bool}{}
+\tadOperacion{tieneDosHijos}{puntero(Nodo)}{bool}{}
+\tadOperacion{tieneHijoIzq}{puntero(Nodo)}{bool}{}
+\tadOperacion{nodoMasIzq}{puntero(Nodo)}{puntero(Nodo)/p}{p $\neq$ NULL}
+\tadOperacion{nodoMasDer}{puntero(Nodo)}{puntero(Nodo)/p}{p $\neq$ NULL}
+
+
+~
+
+\tadAxioma{tamaño(p)}{
+	\IF p $==$ NULL THEN $0$
+	ELSE $1 +$ tamaño(p$\rightarrow$hder) $+$ tamaño(p$\rightarrow$hder)
+	FI
+}
+
+\tadAxioma{invarianteABB(p)}{
+	\IF p $==$ NULL THEN $true$
+	ELSE {
+		\IF tieneDosHijos(p) THEN (p$\rightarrow$clave $>$ p$\rightarrow$hizq$\rightarrow$clave) $\land$ (p$\rightarrow$clave $<$ p$\rightarrow$hder$\rightarrow$clave) $\land$ invarianteABB(p$\rightarrow$hizq) $\land$ invarianteABB(p$\rightarrow$hder)
+		ELSE {
+			\IF tieneHijoIzq(p) THEN (p$\rightarrow$clave $>$ p$\rightarrow$hizq$\rightarrow$clave) $\land$ invarianteABB(p$\rightarrow$hizq)
+			ELSE (p$\rightarrow$clave $<$ p$\rightarrow$hder$\rightarrow$clave) $\land$ invarianteABB(p$\rightarrow$hder)
+			FI
+		}
+		FI
+	}
+	FI
+}
+
+\tadAxioma{tieneDosHijos(p)}{p$\rightarrow$hder $\neq$ NULL $\land$ p$\rightarrow$hizq $\neq$ NULL}
+
+\tadAxioma{tieneHijoIzq(p)}{p$\rightarrow$hizq $\neq$ NULL}
+
+\tadAxioma{nodoMasIzq(p)}{
+	\IF p$\rightarrow$hizq $==$ NULL THEN p
+	ELSE nodoMasIzq(p$\rightarrow$hizq)
+	FI
+}
+
+\tadAxioma{nodoMasDer(p)}{
+	\IF p$\rightarrow$hder $==$ NULL THEN p
+	ELSE nodoMasDer(p$\rightarrow$hder)
+	FI
+}
+
+~
+
+\subsubsection{Función de Abstracción}
+
+
+\Abs[estr]{diccNat($\alpha$)}[e]{d}{
+($\forall n$: nat)(def?($n$, $d$) $\igobs$ EstaDef?($n$, $e.raiz$) $\yluego$ def?($n$, $d$) $\impluego$ \\ $\impluego$ (obtener($n$, $d$) $\igobs$ Sign($n$,$e.raiz$)))
+}
+
+~
+
+\tadOperacion{EstaDef?}{nat/n,ab((nat,$\alpha$))/a}{bool}{}
+\tadOperacion{Sign}{nat/n,ab((nat,$\alpha$))/a}{bool}{EstaDef?(n,a)}
+
+\tadAxioma{EstaDef?(n,a)}{
+	\IF (a = NULL) THEN false
+	ELSE {
+		\IF ($\pi_1$(raiz(a)) $=$ n) THEN true
+		ELSE{
+			\IF ($\pi_1$(raiz(a)) $>$ n) THEN EstaDef?(n, izq(a))
+			ELSE EstaDef?(n, der(a))
+			FI
+		}
+		FI
+	}
+	FI
+}
+
+\tadAxioma{Sign(n,a)}{
+	\IF ($\pi_1$(raiz(a)) $=$ n) THEN $\pi_2$(raiz(a))
+	ELSE{
+		\IF ($\pi_1$(raiz(a)) $>$ n) THEN Sign(n, izq(a))
+		ELSE Sign(n, der(a))
+		FI
+	}
+	FI
+	
+}
+
+
+
+
+%================================================================
+\subsection{Algoritmos}
+
+%\subsubsection{Algoritmos de Diccionario Natural($\alpha$)}
+
+\begin{algorithm}[H]{\textbf{iCrearDiccionario}() $\to$ $res$ : $estr$}
+	{\\ $\textbf{Pre}$ $\equiv$ true}
+	\begin{algorithmic}[1]
+
+		\State $res.raiz \gets NULL$ \Comment $O(1)$
+		\State $res.masChico \gets NULL$ \Comment $O(1)$
+		\State $res.masGrande \gets NULL$ \Comment $O(1)$
+		\State $res.cantnodos \gets 0$ \Comment $O(1)$
+
+		\medskip
+		\Statex \underline{Complejidad:} $O(1)$
+		\Statex \underline{Justificación:} Inicializa los punteros en NULL y le asigna $0$ a la cantidad de nodos.
+
+    \end{algorithmic}
+    {$\textbf{Post}$ $\equiv$ res $\igobs$ vacio()}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iDefinir}(\In{c}{Nat}, \In{s}{$\alpha$}, \Inout{e}{estr})}
+	{\\ $\textbf{Pre}$ $\equiv$ $d \igobs d_o$}
+	\begin{algorithmic}[1]
+
+		\If{$\neg$Definido(c,e)} \Comment $O(log(n))$ en caso promedio.
+			\State $\backslash\backslash$ no esta definido, lo agrego
+			\\
+			\State $puntero(Nodo): nuevonodo$ \Comment $O(1)$
+
+			\State $(nuevonodo$$\rightarrow$$clave) \gets c$ \Comment $O(1)$
+			\State $(nuevonodo$$\rightarrow$$sign) \gets s$ \Comment $\Theta(copy(s))$
+			\\
+
+			\If{$e.raiz == NULL$} \Comment $O(1)$
+				\State $\backslash\backslash$ el arbol está vacio
+				
+				\State $e.raiz \gets nuevonodo$ \Comment $O(1)$
+				\State $e.masChico \gets nuevonodo$ \Comment $O(1)$ 
+				\State $e.masGrande \gets nuevonodo$ \Comment $O(1)$
+				\\
+
+			\Else
+				\State $\backslash\backslash$ el arbol NO está vacio, busco al padre y lo agrego en su lugar
+
+				\State $puntero(Nodo) npapa \gets $BuscaNodoParaInsertar$(c)$ \Comment $O(log(n))$ en caso promedio.
+				\\
+
+				\If {$c < (npapa$$\rightarrow$$clave) \land (npapa$$\rightarrow$$hizq) == NULL$} \Comment $O(1)$
+
+					\State $(npapa$$\rightarrow$$hizq) \gets nuevonodo$ \Comment $O(1)$
+					\State $(nuevonodo$$\rightarrow$$padre) \gets npapa$ \Comment $O(1)$
+					\\
+				\ElsIf{$c > (npapa$$\rightarrow$$clave) \land (npapa$$\rightarrow$$hder) == NULL$} \Comment $O(1)$
+
+					\State $(npapa$$\rightarrow$$hder) \gets nuevonodo$ \Comment $O(1)$
+					\State $(nuevonodo$$\rightarrow$$padre) \gets npapa$ \Comment $O(1)$
+					\\
+				\EndIf
+				\\
+
+				\State $\backslash\backslash$ si la clave es mas chica que la clave de e.masChico o la clave es mas grande que e.masGrande cambio el puntero.
+				\\
+
+				\If{$c < (e.masChico$$\rightarrow$$clave)$} \Comment $O(1)$
+
+					\State $e.masChico \gets nuevonodo$ \Comment $O(1)$
+
+				\ElsIf{$c > (e.masGrande$$\rightarrow$$clave)$}
+					\State $e.masGrande \gets nuevonodo$ \Comment $O(1)$					
+
+				\EndIf
+				\\
+
+				\State $e.cantnodos \gets e.cantnodos + 1$ \Comment $O(1)$
+
+			\EndIf
+
+
+		\Else
+			\State $\backslash\backslash$ esta definida la clave, lo piso.
+			\\
+
+			\State $puntero(Nodo): nodo \gets$ BuscaNodo$(c)$ \Comment $O(log(n))$ en caso promedio.
+
+			\State $(nodo$$\rightarrow$$sign) \gets s$ \Comment $\Theta(copy(s))$
+
+
+		\EndIf
+
+		\medskip
+		\Statex \underline{Complejidad:} Caso promedio: $O(log(n) + copy(s))$ | Peor Caso $O(n + copy(s))$
+		\Statex \underline{Justificación:} Lo que hace el algoritmo es fijarse si esta definida la clave (Caso prom: $O(log(n))$ | Peor Caso $O(n)$), si no lo esta crea un nuevo nodo con la clave y el significado (Caso prom: $O(log(n))$ | Peor Caso $O(n)$) y lo inserta en el lugar correspondiente buscando el padre del nuevo nodo (Caso prom: $O(log(n))$ | Peor Caso $O(n)$). Si esta definida la clave solo busca el nodo de la misma (Caso prom: $O(log(n))$ | Peor Caso $O(n)$) y copia el nuevo significado ($O(copy(s))$).
+
+    \end{algorithmic}
+    {$\textbf{Post}$ $\equiv$ $d \igobs$ Definir($c$, $s$, $d_o$)}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iDefinido?}(\In{c}{nat}, \In{e}{estr}) $\to$ $res$ : $bool$}
+	{\\ $\textbf{Pre}$ $\equiv$ true}
+	\begin{algorithmic}[1]
+
+		\State $res \gets $BuscaNodo$(c,e) \neq Null$ \Comment $O(log(n))$ en caso promedio.
+
+		\medskip
+		\Statex \underline{Complejidad:} $O(log(n))$ en caso promedio.
+		\Statex \underline{Justificación:} Es la complejidad de BuscaNodo basicamente. BuscaNodo devuelve el Nodo de la clave, si existe, o NULL si no existe.
+
+    \end{algorithmic}
+    {$\textbf{Post}$ $\equiv$ $res \igobs$ Definido?($c$, $d$)}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iObtener}(\In{c}{nat}, \In{e}{estr}) $\to$ $res$ : $\alpha$}
+	{\\ $\textbf{Pre}$ $\equiv$ Definido?($c$, $d$)}
+	\begin{algorithmic}[1]
+
+		\State $res \gets ($BuscaNodo$(c,e)$$\rightarrow$$sign)$ \Comment $O(log(n))$ en caso promedio.
+
+		\medskip
+		\Statex \underline{Complejidad:} $O(log(n))$ en caso promedio.
+		\Statex \underline{Justificación:} Es la complejidad de BuscaNodo.
+
+    \end{algorithmic}
+    {$\textbf{Post}$ $\equiv$ $res \igobs$ Obtener($c$,$d$)}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iBorrar}(\In{c}{nat}, \In{e}{estr}) $\to$ $res$ : $\alpha$}
+	{\\ $\textbf{Pre}$ $\equiv$ $d \igobs d_o \land$ Definido?($c$, $d$)}
+	\begin{algorithmic}[1]
+
+		\If{Definido?$(c,e)$} \Comment $O(log(n))$ en caso promedio.
+			\State $puntero(Nodo): paraborrar \gets$ BuscaNodo$(c,e)$ \Comment $O(log(n))$ en caso promedio.
+			\\
+
+			\State $\backslash\backslash$ reviso si borro la clave mas chica.
+			\If{$(e.masChico$$\rightarrow$$clave) == c$} \Comment $O(1)$
+
+				\State $\backslash\backslash$ reasigno el mas chico
+				\\
+
+				\If{TieneHijoDerecho$(e.masChico)$} \Comment $O(1)$
+					\State $e.masChico \gets$ BuscaNodoMasIzq$((e.masChico$$\rightarrow$$hder))$ \Comment $O(log(n))$ en caso promedio.
+					\\
+
+				\ElsIf{$(e.masChico$$\rightarrow$$padre) \neq NULL$} \Comment $O(1)$
+					\State $e.masChico \gets$ $(e.masChico$$\rightarrow$$padre)$ \Comment $O(1)$
+					\\
+
+				\Else
+					\State $\backslash\backslash$ no tiene hijos ni padre, es unico nodo.
+					\State $e.masChico \gets NULL$ \Comment $O(1)$
+
+				\EndIf
+
+			\EndIf
+			\\
+
+			\State $\backslash\backslash$ reviso si borro la clave mas alta.
+			\If{$(e.masGrande$$\rightarrow$$clave) == c$} \Comment $O(1)$
+
+				\State $\backslash\backslash$ reasigno el mas alto
+				\\
+
+				\If{TieneHijoIzq$(e.masGrande)$} \Comment $O(1)$
+					\State $e.masGrande \gets$ BuscoNodoMasDerecha$((e.masGrande$$\rightarrow$$hizq))$ \Comment $O(log(n))$ en caso promedio.
+					\\
+
+				\ElsIf{$(e.masGrande$$\rightarrow$$padre) \neq NULL$} \Comment $O(1)$
+					\State $e.masGrande \gets$ $(e.masGrande$$\rightarrow$$padre)$ \Comment $O(1)$
+					\\
+
+				\Else
+					\State $\backslash\backslash$ no tiene hijos ni padre, es unico nodo.
+					\State $e.masGrande \gets NULL$ \Comment $O(1)$
+
+				\EndIf
+
+			\EndIf
+			\\
+
+			\State $\backslash\backslash$ Borro separando en casos.
+
+			\If{NoTieneHijos$(paraborrar)$} \Comment $O(1)$
+
+				\State BorrarCasoNoTieneHijos$(paraborrar, e)$ \Comment $O(1)$
+
+			\ElsIf{TieneUnHijo$(paraborrar)$} \Comment $O(1)$
+
+				\State BorrarCasoTieneUnHijo$(paraborrar, e)$ \Comment $O(1)$
+
+			\Else
+
+				\State BorrarCasoTieneDosHijos$(paraborrar, e)$ \Comment $O(log(n))$ en caso promedio.
+
+			\EndIf
+			\\
+			
+			\State $e.cantclaves \gets e.cantclaves -1$ \Comment $O(1)$
+
+			\State $paraborrar \gets NULL$ \Comment $O(1)$
+
+		\EndIf
+
+		\medskip
+		\Statex \underline{Complejidad:} $O(log(n))$ en caso promedio.
+		\Statex \underline{Justificación:} Primero revisa si la clave esta definida (Caso prom: $O(log(n))$ | Peor Caso $O(n)$), si lo esta, busca el nodo para borrar (Caso prom: $O(log(n))$ | Peor Caso $O(n)$). Si es el nodo mas chico, lo modifica (Caso prom: $O(log(n))$ | Peor Caso $O(n)$). Despues reacomoda los nodos, en donde el peor caso es si el nodo a borrar tiene dos hijos (Caso prom: $O(log(n))$ | Peor Caso $O(n)$). El resto de las operaciones son basicas con complejidad $O(1)$. El caso promedio se obtiene si las claves fueron insertadas y borradas de forma uniforme.
+
+    \end{algorithmic}
+    {$\textbf{Post}$ $\equiv$ $d \igobs$ Borrar($c$, $d_o$)}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iEsVacio?}(\In{e}{estr}) $\to$ $res$ : $bool$}
+	{\\ $\textbf{Pre}$ $\equiv$ true}
+	\begin{algorithmic}[1]
+
+		\State $res \gets e.raiz \neq NULL \land e.cantclaves \neq 0$ \Comment $O(1)$
+
+		\medskip
+		\Statex \underline{Complejidad:} $O(1)$
+		\Statex \underline{Justificación:} Simplemente revisa si la raíz es null y si la cantidad de claves es cero.
+
+    \end{algorithmic}
+    {$\textbf{Post}$ $\equiv$ $res \igobs$ EsVacio?($d$)}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{i\#Claves}(\In{e}{estr}) $\to$ $res$ : $nat$}
+	{\\ $\textbf{Pre}$ $\equiv$ true}
+	\begin{algorithmic}[1]
+
+		\State $res \gets e.cantclaves$ \Comment $O(1)$
+
+		\medskip
+		\Statex \underline{Complejidad:} $O(1)$
+		\Statex \underline{Justificación:} Devuelve la cantidad de claves que es parte de la estructura.
+
+    \end{algorithmic}
+    {$\textbf{Post}$ $\equiv$ $res \igobs$ \#Claves($d$)}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iClaveMinima}(\In{e}{estr}) $\to$ $res$ : $nat$}
+	{\\ $\textbf{Pre}$ $\equiv$ $\neg EsVacio(d)$}
+	\begin{algorithmic}[1]
+
+		\State $res \gets (e.masChico$$\rightarrow$$clave)$ \Comment $O(1)$
+
+		\medskip
+		\Statex \underline{Complejidad:} $O(1)$
+
+    \end{algorithmic}
+    {$\textbf{Post}$ $\equiv$ $res \igobs$ Minimo($d$)}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iClaveMaxima}(\In{e}{estr}) $\to$ $res$ : $nat$}
+	{\\ $\textbf{Pre}$ $\equiv$ $\neg EsVacio(d)$}
+	\begin{algorithmic}[1]
+
+		\State $res \gets (e.masGrande$$\rightarrow$$clave)$ \Comment $O(1)$
+
+		\medskip
+		\Statex \underline{Complejidad:} $O(1)$
+
+    \end{algorithmic}
+    {$\textbf{Post}$ $\equiv$ $res \igobs$ Maximo($d$)}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iBuscaNodoParaInsertar}(\In{c}{nat}, \In{e}{estr}) $\to$ $res$ : $puntero(Nodo)$}
+	{\\ $\textbf{Pre}$ $\equiv$ $\neg$EsVacio?(e) $\land$ $\neg$Definido?(c,e)}
+	\begin{algorithmic}[1]
+		\State $\backslash\backslash$ No hay nodo que tenga como clave c, aquí estoy buscando al padre para poder insertar un nodo con la clave c. 
+		\\
+
+		\State $puntero(Nodo): buscanodo \gets e.raiz$ \Comment $O(1)$
+		\State $puntero(Nodo): nodores \gets NULL$ \Comment $O(1)$
+		\\
+
+		\While{$buscanodo \neq NULL \land nodores == NULL$} \Comment $O(1)$
+			\\
+			\If{$c < (buscanodo$$\rightarrow$$clave) \land (buscanodo$$\rightarrow$$hizq) \neq NULL$} \Comment $O$
+				\State $buscanodo \gets (buscanodo$$\rightarrow$$hizq)$ \Comment $O(1)$
+
+			\ElsIf{$c > (buscanodo$$\rightarrow$$clave) \land (buscanodo$$\rightarrow$$hder) \neq NULL$} \Comment $O$
+				\State $buscanodo \gets (buscanodo$$\rightarrow$$hder)$ \Comment $O(1)$
+
+			\ElsIf{$(c < (buscanodo$$\rightarrow$$clave) \land (buscanodo$$\rightarrow$$hizq) == NULL) \lor (c > (buscanodo$$\rightarrow$$clave) \land (buscanodo$$\rightarrow$$hder) == NULL)$} \Comment $O(1)$
+				\State $nodores \gets buscanodo$ \Comment $O(1)$
+			\EndIf
+
+		\EndWhile \Comment $O(log(n))$ en caso promedio.
+		\\
+
+		\State $res \gets nodores$ \Comment $O(1)$
+
+		\medskip
+		\Statex \underline{Complejidad:} Caso prom: $O(log(n))$ | Peor Caso $O(n)$
+		\Statex \underline{Justificación:} Si cada clave Nat se inserta con distrubución uniforme, y no hay claves repetidas en este diccionario, genera que en caso promedio la busqueda de un elemento sea logaritmica ya que el arbol tiende a estar completo (por lo dicho antes y por su invariante) y en cada ciclo del while descarta aproximadamente la mitad de los elementos del subarbol.
+
+    \end{algorithmic}
+    {$\textbf{Post}$ $\equiv$ $res \igobs$ BuscoPadreAInsertar($c$, $e.raiz$)}
+\end{algorithm}
+
+\tadOperacion{BuscoPadreAInsertar}{nat/c, puntero(Nodo)/p}{puntero(Nodo)}{}
+
+\tadAxioma{BuscoPadreAInsertar(c,p)}{
+	\IF (clave(p) > c $\land$ hijoizq(p) = NULL) $\lor$ (clave(p) < c $\land$ hijoder(p) = NULL) THEN p
+	ELSE {
+		\IF clave(p) > c THEN BuscoPadreAInsertar(c,hijoizq(p))
+		ELSE BuscoPadreAInsertar(c,hijoizq(p))
+		FI
+	}
+	FI
+}
+
+
+~
+
+
+\begin{algorithm}[H]{\textbf{iBuscaNodo}(\In{c}{nat}, \In{e}{estr}) $\to$ $res$ : $puntero(Nodo)$}
+	{\\ $\textbf{Pre}$ $\equiv$ true}
+	\begin{algorithmic}[1]
+
+		\State $puntero(Nodo): buscanodo \gets e.raiz$ \Comment $O(1)$
+
+		\While{$buscanodo \neq NULL \yluego (buscanodo$$\rightarrow$$clave) \neq c$} \Comment $O(1)$
+
+			\If{$c < (buscanodo$$\rightarrow$$clave)$} \Comment $O(1)$
+				\State $buscanodo \gets (buscanodo$$\rightarrow$$hizq)$ \Comment $O(1)$
+			\Else
+				\State $buscanodo \gets (buscanodo$$\rightarrow$$hder)$ \Comment $O(1)$
+			\EndIf
+
+		\EndWhile \Comment $O(log(n))$ en caso promedio.
+
+		\\
+		\State $res \gets buscanodo$ \Comment $O(1)$
+
+		\medskip
+		\Statex \underline{Complejidad:} $O(log(n))$ en caso promedio.
+		\Statex \underline{Justificación:} Si cada clave Nat se inserta con distrubución uniforme, y no hay claves repetidas en este diccionario, genera que en caso promedio la busqueda de un elemento sea logaritmica ya que el arbol tiende a estar completo (por lo dicho antes y por su invariante) y en cada ciclo del while descarta aproximadamente la mitad de los elementos del subarbol.
+
+    \end{algorithmic}
+    {$\textbf{Post}$ $\equiv$ $res \igobs$ BuscoNodoDeClave($c$, $e.raiz$)}
+\end{algorithm}
+
+\tadOperacion{BuscoNodoDeClave}{nat/c, puntero(Nodo)/p}{puntero(Nodo)}{}
+
+\tadAxioma{BuscoNodoDeClave(c,p)}{
+	\IF p = NULL THEN NULL
+	ELSE {
+		\IF clave(p) = c THEN p
+		ELSE {
+			\IF clave(p) > c THEN BuscoNodoDeClave(c,hijoizq(p))
+			ELSE BuscoNodoDeClave(c,hijoder(p))
+			FI
+		}
+		FI
+	}
+	FI
+}
+
+
+~
+
+
+\begin{algorithm}[H]{\textbf{iTieneHijoDerecho}(\In{n}{puntero(Nodo)}) $\to$ $res$ : $bool$}
+	{\\ $\textbf{Pre}$ $\equiv$ $n \neq NULL$}
+	\begin{algorithmic}[1]
+
+		\State $res \gets (n$$\rightarrow$$hder) \neq NULL$ \Comment $O(1)$
+
+		\medskip
+		\Statex \underline{Complejidad:} $O(1)$
+
+    \end{algorithmic}
+    {$\textbf{Post}$ $\equiv$ $res \igobs$ hijoder(n) $\neq NULL$}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iTieneHijoIzq}(\In{n}{puntero(Nodo)}) $\to$ $res$ : $bool$}
+	{\\ $\textbf{Pre}$ $\equiv$ $n \neq NULL$}
+	\begin{algorithmic}[1]
+
+		\State $res \gets (n$$\rightarrow$$hizq) \neq NULL$ \Comment $O(1)$
+
+		\medskip
+		\Statex \underline{Complejidad:} $O(1)$
+
+    \end{algorithmic}
+    {$\textbf{Post}$ $\equiv$ $res \igobs$ hijoizq($n$) $\neq NULL$}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iBuscaNodoMasIzq}(\In{der}{puntero(Nodo)}) $\to$ $res$ : $puntero(Nodo)$}
+	{\\ $\textbf{Pre}$ $\equiv$ $der \neq$ NULL}
+	\begin{algorithmic}[1]
+
+		\State $puntero(Nodo): buscanodo \gets der$ \Comment $O(1)$
+
+		\If{$buscanodo \neq NULL$} \Comment $O(1)$
+		\\
+			\While{$(buscanodo$$\rightarrow$$hizq) \neq NULL $} \Comment $O(1)$
+				\State $buscanodo \gets (buscanodo$$\rightarrow$$hizq)$ \Comment $O(1)$
+			\EndWhile \Comment $O(log(n))$ en caso promedio.
+
+		\EndIf
+
+		\State $res \gets buscanodo$ \Comment $O(1)$
+
+		\medskip
+		\Statex \underline{Complejidad:} Caso prom: $O(log(n))$ | Peor Caso $O(n)$
+		\Statex \underline{Justificación:} Si cada clave Nat se inserta con distrubución uniforme y no hay claves repetidas en este diccionario, esto genera que el arbol tienda a estar completo, por lo tanto la altura del arbol tiende a ser $log(n)$. Como tiene que ir al nodo de más a la izquierda del arbol y la altura es en promedio $log(n)$, llegar a ese nodo, en promedio, es $log(n)$. Si las claves no fueron insertadas de forma uniforme se puede obtener un peor caso lineal $O(n)$.
+
+    \end{algorithmic}
+    {$\textbf{Post}$ $\equiv$ $res \igobs$ NodoMasIzq($der$)}
+\end{algorithm}
+
+\tadOperacion{NodoMasIzq}{puntero(Nodo)/p}{puntero(Nodo)}{$p \neq$ NULL}
+
+\tadAxioma{NodoMasIzq(p)}{
+	\IF hijoizq(p) = NULL THEN p
+	ELSE NodoMasIzq(hijoizq(p))
+	FI
+}
+
+~
+
+\begin{algorithm}[H]{\textbf{iBuscoNodoMasDerecha}(\In{a}{puntero(Nodo)}) $\to$ $res$ : $puntero(Nodo)$}
+	{\\ $\textbf{Pre}$ $\equiv$ $a \neq$ NULL}
+	\begin{algorithmic}[1]
+
+		\If{$a \neq NULL$} \Comment $O(1)$
+		\\
+			\While{$(a$$\rightarrow$$hder) \neq NULL $} \Comment $O(1)$
+				\State $a \gets (a$$\rightarrow$$hder)$ \Comment $O(1)$
+			\EndWhile \Comment $O(log(n))$ en caso promedio.
+
+		\EndIf
+
+		\State $res \gets a$ \Comment $O(1)$
+
+		\medskip
+		\Statex \underline{Complejidad:} Caso prom: $O(log(n))$ | Peor Caso $O(n)$
+		\Statex \underline{Justificación:} Si cada clave Nat se inserta con distrubución uniforme y no hay claves repetidas en este diccionario, esto genera que el arbol tienda a estar completo, por lo tanto la altura del arbol tiende a ser $log(n)$. Como tiene que ir al nodo de más a la izquierda del arbol y la altura es en promedio $log(n)$, llegar a ese nodo, en promedio, es $log(n)$. Si las claves no fueron insertadas de forma uniforme se puede obtener un peor caso lineal $O(n)$.
+
+    \end{algorithmic}
+    {$\textbf{Post}$ $\equiv$ $res \igobs$ NodoMasDer($a$)}
+\end{algorithm}
+
+\tadOperacion{NodoMasDer}{puntero(Nodo)/p}{puntero(Nodo)}{$p \neq$ NULL}
+
+\tadAxioma{NodoMasDer(p)}{
+	\IF hijoder(p) = NULL THEN p
+	ELSE NodoMasDer(hijoder(p))
+	FI
+}
+
+~
+
+
+\begin{algorithm}[H]{\textbf{iNoTieneHijos}(\In{pb}{puntero(Nodo)}) $\to$ $res$ : $puntero(Nodo)$}
+	{\\ $\textbf{Pre}$ $\equiv$ $pb \neq$ NULL}
+	\begin{algorithmic}[1]
+
+		\State $res \gets (pb$$\rightarrow$$hder) == NULL \land (pb$$\rightarrow$$hizq) == NULL$ \Comment $O(1)$
+
+		\medskip
+		\Statex \underline{Complejidad:} $O(1)$
+
+    \end{algorithmic}
+    {$\textbf{Post}$ $\equiv$ $res \igobs$ hijoder$(pb) = NULL$ $\land$ hijoizq$(pb) = NULL$}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iTieneUnHijo}(\In{pb}{puntero(Nodo)}) $\to$ $res$ : $puntero(Nodo)$}
+	{\\ $\textbf{Pre}$ $\equiv$ $pb \neq$ NULL}
+	\begin{algorithmic}[1]
+
+		\State $res \gets ((pb$$\rightarrow$$hder) \neq NULL \land (pb$$\rightarrow$$hizq) = NULL) \lor ((pb$$\rightarrow$$hizq) \neq NULL \land (pb$$\rightarrow$$hder) = NULL)$ \Comment $O(1)$
+
+		\medskip
+		\Statex \underline{Complejidad:} $O(1)$
+
+    \end{algorithmic}
+    {$\textbf{Post}$ $\equiv$ $res \igobs$ (hijoder$(pb) \neq NULL$ $\land$ hijoizq$(pb) = NULL) \lor ($hijoder$(pb) = NULL$ $\land$ hijoder$(pb) \neq NULL)$}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iBorrarCasoNoTieneHijos}(\Inout{pb}{puntero(Nodo)}, \Inout{e}{estr})}
+	{\\ $\textbf{Pre}$ $\equiv$ $pb \neq$ NULL $\land$ Definido?($pb$$\rightarrow$$clave$,$e$) $\yluego$ Obtener($pb$$\rightarrow$$clave$,$e$) $=$ $pb$$\rightarrow$$sign$}
+	\begin{algorithmic}[1]
+
+		\If {$(pb$$\rightarrow$$padre) == NULL$} \Comment $O(1)$
+			\State $e.raiz \gets NULL$ \Comment $O(1)$
+		\Else
+			\If {EsHijoDerecho$((pb$$\rightarrow$$padre), (pb$$\rightarrow$$clave)$)} \Comment $O(1)$
+				\State $(pb$$\rightarrow$$padre)$$\rightarrow$$hder \gets NULL$ \Comment $O(1)$
+			\Else
+				\State $(pb$$\rightarrow$$padre)$$\rightarrow$$hizq \gets NULL$ \Comment $O(1)$
+			\EndIf
+
+		\EndIf
+
+		\medskip
+		\Statex \underline{Complejidad:} $O(1)$
+		\Statex \underline{Justificación:} Todas las operaciones son sobre los punteros del puntero(Nodo) pb. Tanto las de esta función como las de las funciones llamadas dentro de ella.
+
+    \end{algorithmic}
+    {$\textbf{Post}$ $\equiv$ BuscoNodoDeClave(clave($pb$),$e$) = NULL}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iBorrarCasoTieneUnHijo}(\Inout{pb}{puntero(Nodo)}, \Inout{e}{estr})}
+	{\\ $\textbf{Pre}$ $\equiv$ $pb \neq$ NULL $\land$ Definido?($pb$$\rightarrow$$clave$,$e$) $\yluego$ Obtener($pb$$\rightarrow$$clave$,$e$) $=$ $pb$$\rightarrow$$sign$}
+	\begin{algorithmic}[1]
+
+		\If {$(pb$$\rightarrow$$padre) == NULL$} \Comment $O(1)$
+			\State $\backslash\backslash$ no tiene padre
+
+			\If{TieneHijoDerecho$(pb)$} \Comment $O(1)$
+				\State $e.raiz \gets (pb$$\rightarrow$$hder)$ \Comment $O(1)$
+				\State $(pb$$\rightarrow$$hder)$$\rightarrow$$padre \gets NULL$ \Comment $O(1)$
+
+			\Else
+				\State $e.raiz \gets (pb$$\rightarrow$$hizq)$ \Comment $O(1)$
+				\State $(pb$$\rightarrow$$hizq)$$\rightarrow$$padre \gets NULL$ \Comment $O(1)$
+
+			\EndIf
+
+		\Else
+			\State $\backslash\backslash$ tiene padre
+
+			\If {TieneHijoDerecho$(pb)$} \Comment $O(1)$
+				
+				\If{EsHijoDerecho$((pb$$\rightarrow$$padre), (pb$$\rightarrow$$clave))$} \Comment $O(1)$
+					\State $(pb$$\rightarrow$$padre)$$\rightarrow$$hder \gets (pb$$\rightarrow$$hder)$ \Comment $O(1)$
+				\Else
+					\State $(pb$$\rightarrow$$padre)$$\rightarrow$$hizq \gets (pb$$\rightarrow$$hder)$ \Comment $O(1)$
+				\EndIf
+				\State $(pb$$\rightarrow$$hder)$$\rightarrow$$padre \gets (pb$$\rightarrow$$padre)$ \Comment $O(1)$
+				\\
+			\Else
+
+				\If{EsHijoDerecho$((pb$$\rightarrow$$padre), (pb$$\rightarrow$$clave))$} \Comment $O(1)$
+					\State $(pb$$\rightarrow$$padre)$$\rightarrow$$hder \gets (pb$$\rightarrow$$hizq)$ \Comment $O(1)$
+				\Else
+					\State $(pb$$\rightarrow$$padre)$$\rightarrow$$hizq \gets (pb$$\rightarrow$$hizq)$ \Comment $O(1)$
+				\EndIf
+				\State $(pb$$\rightarrow$$hizq)$$\rightarrow$$padre \gets (pb$$\rightarrow$$padre)$ \Comment $O(1)$
+				\\
+
+			\EndIf
+			
+		\EndIf
+
+		\medskip
+		\Statex \underline{Complejidad:} $O(1)$
+		\Statex \underline{Justificación:} Todas las operaciones son sobre los punteros del puntero(Nodo) pb. Tanto las de esta función como las de las funciones llamadas dentro de ella.
+
+    \end{algorithmic}
+    {$\textbf{Post}$ $\equiv$ BuscoNodoDeClave(clave($pb$),$e$) = NULL}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iBorrarCasoTieneDosHijos}(\Inout{pb}{puntero(Nodo)}, \Inout{e}{estr})}
+	{\\ $\textbf{Pre}$ $\equiv$ $pb \neq$ NULL $\land$ Definido?($pb$$\rightarrow$$clave$,$e$) $\yluego$ Obtener($pb$$\rightarrow$$clave$,$e$) $=$ $pb$$\rightarrow$$sign$}
+	\begin{algorithmic}[1]
+
+		\State $puntero(Nodo): masizq \gets $BuscaNodoMasIzq$(pb$$\rightarrow$$hder)$ \Comment $O(log(n))$ en caso promedio.
+		\\
+
+		\State $\backslash\backslash$ acomodo hijos
+		\State $\backslash\backslash$ si el nodo mas izq es hijo de pb
+		\If{$(pb$$\rightarrow$$hder)$$\rightarrow$$clave == (masizq$$\rightarrow$$clave)$} \Comment $O(1)$
+			\State $(masizq$$\rightarrow$$hizq) \gets (pb$$\rightarrow$$hizq)$ \Comment $O(1)$
+			\State $(pb$$\rightarrow$$hizq)$$\rightarrow$$padre \gets masizq$ \Comment $O(1)$
+
+		\Else
+
+			\State AcomodoNodoMasIzq$(pb, masizq)$ \Comment $O(1)$
+
+		\EndIf
+		\\
+
+		\State $\backslash\backslash$ acomodo el padre de pb y mas izq
+		\If {$(pb$$\rightarrow$$padre) == NULL$} \Comment $O(1)$
+			\State $(masizq$$\rightarrow$$padre) \gets NULL$ \Comment $O(1)$
+			\State $e.raiz \gets masizq$ \Comment $O(1)$
+		
+		\Else
+			\State $(masizq$$\rightarrow$$padre) (pb$$\rightarrow$$padre)$ \Comment $O(1)$
+			\If{EsHijoDerecho$((pb$$\rightarrow$$padre), (pb$$\rightarrow$$clave))$} \Comment $O(1)$
+				\State $(pb$$\rightarrow$$padre)$$\rightarrow$$hder \gets masizq$ \Comment $O(1)$
+
+			\Else
+				\State $(pb$$\rightarrow$$padre)$$\rightarrow$$hizq \gets masizq$ \Comment $O(1)$
+
+			\EndIf
+
+		\EndIf
+
+
+		\medskip
+		\Statex \underline{Complejidad:} Caso prom: $O(log(n))$ | Peor Caso $O(n)$
+		\Statex \underline{Justificación:} Como el nodo a borrar posée dos hijos, se busca el nodo mas a la izquierda del subarbol derecho (el elemento con clave mas chica del subarbol) y se lo reemplaza por el que va a ser borrado. La mayor parte de las operaciones de este algoritmo tienen complejidad $O(1)$ salvo la función BuscaNodoMasIzq que tiene como complejidad Caso prom: $O(log(n))$ | Peor Caso $O(n)$.
+
+    \end{algorithmic}
+    {$\textbf{Post}$ $\equiv$ BuscoNodoDeClave(clave($pb$),$e$) = NULL}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iEsHijoDerecho}(\In{pbpadre}{puntero(Nodo)}, \In{pbclave}{nat}) $\to$ $res$ : $bool$}
+	{\\ $\textbf{Pre}$ $\equiv$ $pbpadre \neq$ NULL}
+	\begin{algorithmic}[1]
+
+		\State $res \gets (pbpadre$$\rightarrow$$hder) \neq NULL \land (pbpadre$$\rightarrow$$hder)$$\rightarrow$$clave == pbclave$ \Comment $O(1)$
+
+		\medskip
+		\Statex \underline{Complejidad:} $O(1)$
+
+    \end{algorithmic}
+    {$\textbf{Post}$ $\equiv$ $res \igobs$ padre$(pbpadre) \neq NULL) \yluego pbclave =$ clave(hijoder$(pbpadre))$}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iEsHijoIzquierdo}(\In{pa}{puntero(Nodo)}, \In{pbclave}{nat}) $\to$ $res$ : $bool$}
+	{\\ $\textbf{Pre}$ $\equiv$ $pa \neq$ NULL}
+	\begin{algorithmic}[1]
+
+		\State $res \gets (pa$$\rightarrow$$padre) \neq NULL \land (pa$$\rightarrow$$padre)$$\rightarrow$$hizq \neq NULL \land ((pa$$\rightarrow$$padre)$$\rightarrow$$hizq)$$\rightarrow$$clave == pa$$\rightarrow$$clave$ \Comment $O(1)$
+
+		\medskip
+		\Statex \underline{Complejidad:} $O(1)$
+
+    \end{algorithmic}
+    {$\textbf{Post}$ $\equiv$ $res \igobs$ padre$(pbpadre) \neq NULL) \yluego pbclave =$ clave(hijoder$(pbpadre))$}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iAcomodoNodoMasIzq}(\Inout{pb}{puntero(Nodo)}, \Inout{masizq}{puntero(Nodo)})}
+	{\\ $\textbf{Pre}$ $\equiv$ $pb \neq$ NULL $\land$ $masizq \neq$ NULL}
+	\begin{algorithmic}[1]
+
+		\State $\backslash\backslash$ el hijo que puede tener es el derecho
+		\If {TieneUnHijo$(masizq)$} \Comment $O(1)$
+
+			\State $(masizq$$\rightarrow$$hder)$$\rightarrow$$padre \gets (masizq$$\rightarrow$$padre) $ \Comment $O(1)$
+			\State $(masizq$$\rightarrow$$padre)$$\rightarrow$$hizq \gets (masizq$$\rightarrow$$hder) $ \Comment $O(1)$
+
+		\Else
+			\State $\backslash\backslash$ no tiene hijo
+			\State $(masizq$$\rightarrow$$padre)$$\rightarrow$$hizq \gets NULL$ \Comment $O(1)$
+			\State $(masizq$$\rightarrow$$padre) \gets NULL$ \Comment $O(1)$
+
+		\EndIf
+		\\
+
+		\State $(masizq$$\rightarrow$$hder) \gets (pb$$\rightarrow$$hder)$ \Comment $O(1)$
+		\State $(pb$$\rightarrow$$hder)$$\rightarrow$$padre \gets masizq$ \Comment $O(1)$
+		\State $(masizq$$\rightarrow$$hizq) \gets (pb$$\rightarrow$$hizq$ \Comment $O(1)$
+		\State $(pb$$\rightarrow$$hizq)$$\rightarrow$$padre \gets masizq$ \Comment $O(1)$
+
+		\medskip
+		\Statex \underline{Complejidad:} $O(1)$
+		\Statex \underline{Justificación:} Todas las operaciones son sobre los punteros del puntero(Nodo) pb. Tanto las de esta función como las de las funciones llamadas dentro de ella.
+uu
+    \end{algorithmic}
+    {$\textbf{Post}$ $\equiv$ ((tieneunhijo($masizq$) $\Rightarrow$ (hijoizq(padre($masizq$)) = hijoder($masizq$) $\land$ padre(hijoder(masizq)) = padre(masizq))) $\lor$ ($\neg$ tieneunhijo($masizq$) $\Rightarrow$ hijoizq(padre($masizq$)) = NULL $\land$ padre($masizq$) = NULL)) $\land$ hijoder($masizq$) = hijoder($pb$) $\land$ padre(hijoder($pb$)) = $masizq$ $\land$ hijoizq($masizq$) = hijoizq($pb$) $\land$ padre(hijoizq($pb$)) = $masizq$}
+\end{algorithm}
+
+
+\tadOperacion{padre}{puntero(Nodo)}{puntero(Nodo)}{$p \neq$ NULL}
+\tadOperacion{hijoder}{puntero(Nodo)}{puntero(Nodo)}{$p \neq$ NULL}
+\tadOperacion{hijoizq}{puntero(Nodo)}{puntero(Nodo)}{$p \neq$ NULL}
+\tadOperacion{clave}{puntero(Nodo)/p}{nat}{$p \neq$ NULL}
+\tadOperacion{tieneunhijo}{puntero(Nodo)/p}{bool}{$p \neq$ NULL}
+
+\tadAxioma{padre(p)}{ p$\rightarrow$padre}
+
+\tadAxioma{hijoder(p)}{ p$\rightarrow$hder}
+
+\tadAxioma{hijoizq(p)}{ p$\rightarrow$hizq}
+
+\tadAxioma{clave(p)}{ p$\rightarrow$clave}
+
+\tadAxioma{tieneunhijo(p)}{ (p$\rightarrow$hder = NULL $\land$ p$\rightarrow$hizq $\neq$ NULL) $\lor$ (p$\rightarrow$hder $\neq$ NULL $\land$ p$\rightarrow$hizq = NULL)}

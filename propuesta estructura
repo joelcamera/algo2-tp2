@@ -1,0 +1,100 @@
+bdd se representa con estr donde estr es tupla 
+< 
+
+tablas: dicctrie(string, infoTabla): Como el nombre de cada tabla es acotado, acceder a cualquier significado de este diccionario es en O(1). Esto permite que devolverTabla = O(1) // campoJoin = O(1) // HayJoin = O(1) // borrarJoin = O(1)
+
+tablaMaxima: string: es el nombre de la tabla con mas accesos, esto se calcula cada vez que hay un acceso ya que para cada tabla acceder a ella es O(1). Este comienza con un " " cuando no hay tablas.
+
+joins: conjLineal(join): es el conjunto de joins que tiene la bdd. Sirve para tenerlos, pero los accedemos desde una tabla por O(1) a cada join.
+
+>
+
+**************************************
+
+donde infoTabla es tupla 
+< 
+
+joinsTabla: dicctrie(string, infoJoin): Este es un diccionario contiene como claves al conjunto de tablas con las cuales esta tabla tiene join (el t_2 ) y devuelve un infoJoin que contiene los datos necesarios de los joins. Como los strings estan acotados aqui se accede en O(1). Esto permite que hayJoin = O(1) (si no esta en las claves no esta y mirarlo en un trie es O(1)) y campoJoin = O(1)
+
+tabla: tabla: devuelve la tabla.
+
+>
+
+*************************************
+
+infoJoin es tupla 
+<
+
+campo: string: el campo lo puedo devolver en O(1) por como accedo a él.
+
+iter: itConj(join): iterador de conjunto lineal apuntando al join.
+
+rNuevos: Lista(registro): Aqui cuando se agregar registros a la tabla, se agregan a este conjunto. Esto sirve para poder agregar al join cuando se pide el vistaJoin
+
+rBorrados: Lista(registro): Idem que el anterior pero para los registros borrados.
+
+>
+
+**************************************
+
+tabla es tupla
+
+<
+
+(ACCEDER AQUI ES O(1))
+
+nombre: string: nombre de la clave, acotado por definicion.
+
+indices: infoIndice: un struct que dice si tiene indices y cuales son.
+
+porIndiceNat: diccABB(Nat, itLista(registro)): 
+
+porIndiceStr: diccTrie(string, itLista(registro)),
+
+ListaRegistros: Lista(registro), ????????????????????
+
+claves: conj(string),
+
+columnas: registro,
+
+#accesos: nat
+
+>
+
+
+**************************************
+
+infoIndice es tupla
+
+<
+
+hayIndice?: bool,
+
+hayNat?: bool,
+
+hayString?: bool,
+
+valorNat: nat,
+
+valorString: string
+
+>
+
+
+*************************************
+
+
+registro es diccionario Lineal Extendido: diccLineal(campo, dato).
+
+
+*************************************
+
+dato es tupla (habria que hacer un modulo de esto???)
+
+<
+
+Nat?: bool,
+valorNat: nat,
+valorString: string,
+
+>
